@@ -3,9 +3,6 @@
 <@c.page>
     <div>
         <form method="post" action="add">
-<#--            <p>Последний запоненный день : ${lastRouteSheet.data}</p>-->
-            <input type="date" name="dateToString" required/><br>
-            <input type="number" name="fueling" required placeholder="Заправка, л"/><br>
             <input type="text" name="address1" required placeholder="Откуда"/><br>
             <input type="text" name="address2" required placeholder="Куда"/><br>
             <input type="text" name="distance" required placeholder="Расстояние"/><br>
@@ -16,5 +13,5 @@
             <br>
         </form>
     </div>
-    
+    <a href="/">Выход в меню</a>
 </@c.page>

@@ -11,7 +11,7 @@
             <td>км, начало дня</td>
             <td>км, конец дня</td>
             <td>км</td>
-            <td>получено, л</td>
+            <td>заправка, л</td>
             <td>расход по норме, л</td>
             <td>расход фактический, л</td>
             <td>экономия</td>
@@ -23,7 +23,7 @@
             <td>${routeSheet.getFuelStart()}</td>
             <td>${routeSheet.getMileageStart()}</td>
             <td>${routeSheet.getMileageFinish()}</td>
-            <td>${routeSheet.getDistance()}</td>
+            <td><#if routeSheet.getDistance()??>${routeSheet.getDistance()}<else></else></#if></td>
             <td>${routeSheet.getFueling()}</td>
             <td>${routeSheet.getConsumptionNorm()}</td>
             <td>${routeSheet.getConsumptionFact()}</td>

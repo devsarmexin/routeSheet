@@ -1,8 +1,7 @@
 <#import "parts/common.ftlh" as c>
 
 <@c.page>
-<#--    Заполняется на : ${date}<br>-->
-    <form method="get" action="/edit2">
+    <form method="get" action="/${path}">
         <input type="number" name="distance" required placeholder="Расстояние"><br>
         <input type="text" name="address1" required placeholder="Откуда"/><br>
         <input type="text" name="address2" required placeholder="Куда"/><br>

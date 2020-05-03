@@ -65,7 +65,7 @@ public class RouteSheetServiceImpl {
         LocalDate winterStartDay = LocalDate.parse("2019-11-01");
         LocalDate winterEndDay = LocalDate.parse("2020-06-30");
         if (date.isAfter(winterStartDay) && date.isBefore(winterEndDay)) {
-            consumptionNorm = consumptionNorm * 1.1;
+            consumptionNorm = Precision.round(consumptionNorm * 1.1, 2);
             System.out.println(">>> в зиме ");
         }
         System.out.println(">>> consumptionNorm = " + consumptionNorm);
@@ -82,10 +82,10 @@ public class RouteSheetServiceImpl {
         System.out.println(">>> consumptionFact = " + consumptionFact);
 
         Double fuelStart = lastRouteShee.getFuelFinish();
-        Double fuelFinish = fuelStart + fueling - consumptionFact;
+        Double fuelFinish = Precision.round(fuelStart + fueling - consumptionFact, 2);
         Long mileageStart = lastRouteShee.getMileageFinish();
         Long mileageFinish = mileageStart + distance;
-        Double saving = consumptionNorm - consumptionFact;
+        Double saving = Precision.round(consumptionNorm - consumptionFact, 3);
 
         RouteSheet routeSheet = new RouteSheet(
                 date,

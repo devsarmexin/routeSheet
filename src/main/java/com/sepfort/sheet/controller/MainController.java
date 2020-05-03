@@ -31,12 +31,12 @@ public class MainController {
     private RouteSheetServiceImpl routeSheetService;
 
     private List<Addresses> addressesList = new ArrayList<>();
-    private Addresses addressesForList = new Addresses();
-    private String filledDate;
     private boolean isAddRouteSheet = true;
     private RouteSheet lastRouteSheet;
     private Long sumDistance = 0L;
     private LocalDate localDateFromAddRoutes;
+    private Long fueling;
+    private String dataNow;
 
     // Вход
     @GetMapping
@@ -45,6 +45,7 @@ public class MainController {
         return "menu";
     }
 
+    // Вывод информации
     @GetMapping("/information")
     public String generalInformation(Model model) {
         Long idMax = routeSheetRepo.findMaxId();
@@ -58,22 +59,34 @@ public class MainController {
         return "information";
     }
 
+    // Ввод заправки
     @GetMapping("/filling")
     public String fillingOutTheWaybill() {
+        // Проверка на присутствие в БД хоть одного путевого листа
         if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
             return "first";
         }
+        return "fueling";
+    }
 
+    // Ввод новых мапшрутов
+    @GetMapping("/fueling")
+    public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data) {
+        fueling = fuel;
+        dataNow = data;
         return "filling";
     }
 
+    // Получаем дату (из date.ftlh) и идём заполнять маршруты
     @GetMapping("/edit")
-    public String edit(@RequestParam String date) {
+    public String edit(@RequestParam String date, Model model) {
         System.out.println(">>> edit");
         localDateFromAddRoutes = LocalDate.parse(date);
+        model.addAttribute("path", "edit2");
         return "addingRoutes";
     }
 
+    // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
     @GetMapping("/edit2")
     public String edit2(
             @RequestParam Long distance,
@@ -104,6 +117,7 @@ public class MainController {
         return "addingRoutes";
     }
 
+    // Запрос даты для добавления маршрутов (далее /edit)
     @GetMapping("/date")
     public String date() {
         return "date";
@@ -120,24 +134,20 @@ public class MainController {
     }
 
     // Добавление путевого листа
-    @PostMapping("add")
+    @PostMapping("/add")
     public String addRouteSheet(
             @AuthenticationPrincipal User user,
-            @RequestParam String dateToString,
-            @RequestParam Long fueling,
             @RequestParam String address1,
             @RequestParam String address2,
             @RequestParam Long distance,
             @RequestParam String flag,
             Model model) {
+        System.out.println(">>> Начали процесс добавления новых маршрутов");
         sumDistance = sumDistance + distance;
-
         //Проверка на существование уже путевоо листа на эту дату
-        LocalDate localDate = LocalDate.parse(dateToString);
-        Iterable<RouteSheet> routeSheetList = routeSheetRepo.findAll();
-        Iterator<RouteSheet> iterator = routeSheetList.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().getData() == localDate) {
+        var localDate = LocalDate.parse(dataNow);
+        for (RouteSheet routeSheet : routeSheetRepo.findAll()) {
+            if (routeSheet.getData() == localDate) {
                 System.out.println(">>> В итераторею Проверка на совпадение даты при вводе маршорутного листа");
                 Long idMax = routeSheetRepo.findMaxId();
                 lastRouteSheet = routeSheetRepo.findById(idMax).get();
@@ -148,12 +158,11 @@ public class MainController {
         }
         if (isAddRouteSheet) {
             System.out.println(">>> Устовка id предыдущего путевого листа");
-            Long idMax = routeSheetRepo.findMaxId();
-            lastRouteSheet = routeSheetRepo.findById(idMax).get();
+            lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
             isAddRouteSheet = true;
         }
         System.out.println(">>> Добавление путевого листа");
-        System.out.println(">>> Дата оформляемого путевого листа : " + dateToString);
+        System.out.println(">>> Дата оформляемого путевого листа : " + dataNow);
         System.out.println(">>> Добавляется ещё один маршрут flag = " + flag);
         if (flag.equals("yes")) {
             Addresses addressesForList = new Addresses(address1, address2, distance);
@@ -164,38 +173,43 @@ public class MainController {
             Addresses addressesForList = new Addresses(address1, address2, distance);
             addressesList.add(addressesForList);
             System.out.println(">>> Добавили последний маршрут. Длина addressList = " + addressesList.size());
-
             System.out.println(">>> из бд " + routeSheetRepo.findDataMax());
             LocalDate localDate1 = routeSheetRepo.findDataMax();
             System.out.println(">>> " + routeSheetRepo.findByData(localDate1));
             Long number = routeSheetRepo.findByData(localDate1).getNumber() + 1L;
             System.out.println(">>> Сдед. номер = " + number);
-            //id путевого листа dateToString
-            //сам предыдущего путевого листа lastRouteSheet
-            routeSheetService.addRouteSheet(user, dateToString, number, lastRouteSheet, fueling, sumDistance, addressesList);
+            routeSheetService.addRouteSheet(user, dataNow, number, lastRouteSheet, fueling, sumDistance, addressesList);
             sumDistance = 0L;
             addressesList = new ArrayList<>();
-
+            fueling = 0L;
+            dataNow = "";
             System.out.println(">>> Переход на страницу statistics");
             return "redirect:/";
         }
-
-        model.addAttribute("lastRouteSheet", lastRouteSheet);
-        return "filing";
+        System.out.println(">>> ВЫХОД");
+        return "filling";
     }
 
-    @GetMapping("/inputroutesheet")
-    public String inputRouteSheet(Model model) {
-        return "inputroutesheet";
-    }
+//    @GetMapping("/inputroutesheet")
+//    public String inputRouteSheet(Model model) {
+//        return "inputroutesheet";
+//    }
 
     @GetMapping("/output")  //Вывод маршрутного листа по дате
     public String output(@RequestParam String date, Model model) {
         LocalDate data = LocalDate.parse(date);
         RouteSheet routeSheet = routeSheetRepo.findByData(data);
+        if (routeSheet == null) {
+            return "menu";
+        }
         model.addAttribute("routeSheet", routeSheet);
         return "output";
     }
+
+//    @GetMapping("/error")
+//    public String error(Model model) {
+//        return "error";
+//    }
 
     //Вывод главного экрана со статистикой и действиями
     @GetMapping("/statistics")
@@ -229,18 +243,6 @@ public class MainController {
         model.addAttribute("lastRouteSheet", lastRouteSheet);
         return "first";
     }
-
-//    @GetMapping("/addingRoutes")
-//    public String addingRoutes(
-////            @RequestParam Long distance,
-////            @RequestParam String address1,
-////            @RequestParam String address2,
-//            Model model
-//    ) {
-//        System.out.println(">>>  " + distance + " " + address1 + " " + address2);
-//        return "addingRoutes";
-//    }
-
 }
 
 

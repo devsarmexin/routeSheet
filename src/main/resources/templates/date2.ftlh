@@ -6,4 +6,5 @@
         <input type="date" name="date" required placeholder="На какую дату ?">
         <button type="submit">ввести</button>
     </form>
+    <a href="/">Выход в меню</a>
 </@c.page>
