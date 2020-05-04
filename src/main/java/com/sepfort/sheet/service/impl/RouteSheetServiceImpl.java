@@ -9,6 +9,7 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.math3.util.Precision;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.ui.Model;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -72,7 +74,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             String address2,
             String flag
     ) {
-    //    routeSheetService.addRoute(distance, address1, address2, flag);
+        //    routeSheetService.addRoute(distance, address1, address2, flag);
         System.out.println(">>>  edit2");
         Addresses addresses = new Addresses(address1, address2, distance);
         System.out.println(">>> " + sumDistance);
@@ -104,7 +106,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             RouteSheet routeSheet = routeSheetRepo.findById(idMax).get();
             LocalDate lastNumber = routeSheet.getData();
             model.addAttribute("lastNumber", lastNumber);
-      //      routeSheetService.generalInformation(model);
+            //      routeSheetService.generalInformation(model);
         }
         return "information";
     }
@@ -284,19 +286,66 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override
     public String createWaybill(String data) throws IOException {
-
-        LocalDate localDate = LocalDate.parse(data);
-
+        List<Integer> integerList = Arrays.asList(4, 10, 6, 3, 6, 7, 21, 11, 30, 4, 35, 4, 38, 11, 39, 11, 40, 11, 41, 11, 42, 11, 49, 11);
+        System.out.println(">>> data = " + data);
+        List<String> value = enteringWaybillData(data);
 
         FileInputStream fileIS = new FileInputStream(new File("C:/exp/tmp/new.xlsx"));
         XSSFWorkbook workbook = new XSSFWorkbook(fileIS);
         XSSFSheet xssfSheet = workbook.getSheetAt(0);
-        Row row = xssfSheet.createRow(0);
-        Cell cell = row.createCell(0);
-        cell.setCellValue("Hello");
+
+        int element = 0;
+        for (int i = 0; i < 24; i++) {
+            Row row = xssfSheet.getRow(integerList.get(i));
+            Cell cell = row.getCell(integerList.get(i + 1));
+            cell.setCellValue(value.get(element++));
+            System.out.println(">>> element = " + element);
+            i++;
+        }
+
+        xssfSheet.ungroupRow(58, 66);
+        CellRangeAddress cellRangeAddress1 = new CellRangeAddress(58, 60, 0, 0);
+        xssfSheet.addMergedRegion(cellRangeAddress1);
+        CellRangeAddress cellRangeAddress2 = new CellRangeAddress(58, 60, 1, 1);
+        xssfSheet.addMergedRegion(cellRangeAddress2);
+        CellRangeAddress cellRangeAddress3 = new CellRangeAddress(58, 60, 2, 2);
+        xssfSheet.addMergedRegion(cellRangeAddress3);
+        CellRangeAddress cellRangeAddress4 = new CellRangeAddress(58, 60, 3, 3);
+        xssfSheet.addMergedRegion(cellRangeAddress4);
+        CellRangeAddress cellRangeAddress5 = new CellRangeAddress(58, 60, 4, 4);
+        xssfSheet.addMergedRegion(cellRangeAddress5);
+        CellRangeAddress cellRangeAddress6 = new CellRangeAddress(58, 60, 5, 5);
+        xssfSheet.addMergedRegion(cellRangeAddress6);
+        CellRangeAddress cellRangeAddress7 = new CellRangeAddress(58, 60, 6, 7);
+        xssfSheet.addMergedRegion(cellRangeAddress7);
+        CellRangeAddress cellRangeAddress8 = new CellRangeAddress(58, 60, 8, 11);
+        xssfSheet.addMergedRegion(cellRangeAddress8);
+        Row row = xssfSheet.getRow(58);
+        Cell cell = row.getCell(0);
+        cell.setCellValue("111");
+
         FileOutputStream fos = new FileOutputStream("C:/exp/tmp/new.xlsx");
         workbook.write(fos);
         fos.close();
         return "menu";
+    }
+
+    private List<String> enteringWaybillData(String data) {
+        List<String> stringList = new ArrayList<>();
+        LocalDate localDate = LocalDate.parse(data);
+        RouteSheet routeSheet = routeSheetRepo.findByData(localDate);
+        stringList.add(0, String.valueOf(routeSheet.getNumber()));
+        stringList.add(1, data);
+        stringList.add(2, data);
+        stringList.add(3, String.valueOf(routeSheet.getMileageStart()));
+        stringList.add(4, data);
+        stringList.add(5, data);
+        stringList.add(6, String.valueOf(routeSheet.getFuelStart()));
+        stringList.add(7, String.valueOf(routeSheet.getFuelFinish()));
+        stringList.add(8, String.valueOf(routeSheet.getConsumptionNorm()));
+        stringList.add(9, String.valueOf(routeSheet.getConsumptionFact()));
+        stringList.add(10, String.valueOf(routeSheet.getSaving()));
+        stringList.add(11, String.valueOf(routeSheet.getMileageFinish()));
+        return stringList;
     }
 }

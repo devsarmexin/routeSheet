@@ -76,7 +76,7 @@ public class MainController {
 
     @GetMapping("/date3")
     public String date3() {
-        return "date3";
+        return "dataForCreateWaybillAdd";
     }
 
     @PostMapping("/add")  // Добавление путевого листа

@@ -6,5 +6,5 @@
     <a href="/date">Добавление маршрутов</a><br><br>
     <a href="/date2">Просмотр путевого листа по дате</a><br><br>
     <a href="">Редактирование путевого листа</a><br><br>
-    <a href="/createWaybill">Вывод на печать</a><br><br>
+    <a href="/date3">Вывод на печать</a><br><br>
 </@c.page>
