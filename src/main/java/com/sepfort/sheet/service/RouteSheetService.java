@@ -1,28 +1,76 @@
-//package com.sepfort.sheet.service;
-//
-//import org.springframework.ui.Model;
-//
-//public interface RouteSheetService {
-//
-//    void savePrimaryInput(
-//            String dateToString,
-//            Long fuelStart,
-//            Long fuelFinish,
-//            Long mileageStart,
-//            Long mileageFinish,
-//            Long fueling,
-//            Long consumptionNorm,
-//            Long consumptionFact,
-//            Long overspending,
-//            Long saving,
-//            Long distance1,
-//            String address11,
-//            String address12,
-//            Long distance2,
-//            String address21,
-//            String address22,
-//            Long distance3,
-//            String address31,
-//            String address32
-//    );
-//}
+package com.sepfort.sheet.service;
+
+import com.sepfort.sheet.domain.Addresses;
+import com.sepfort.sheet.domain.RouteSheet;
+import com.sepfort.sheet.domain.User;
+import org.springframework.ui.Model;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+
+public interface RouteSheetService {
+    void savePrimaryInput(
+            String dateToString,
+            Long number,
+            Double fuelStart,
+            Double fuelFinish,
+            Long mileageStart,
+            Long mileageFinish,
+            Long fueling,
+            Double consumptionNorm,
+            Double consumptionFact,
+            Double saving
+    );
+
+    void addRouteSheet(
+            User user,
+            String dateToString,
+            Long number,
+            RouteSheet lastRouteShee,
+            Long fueling,
+            Long distance,
+            List<Addresses> addressesList
+    );
+
+    String addRoute(
+            Long distance,
+            String address1,
+            String address2,
+            String flag
+    );
+
+    String generalInformation(Model model);
+
+    String goToAddRoute(Long fuel, String data);
+
+    String edit(String date);
+
+    String addRouteSheet(
+            User user,
+            String address1,
+            String address2,
+            Long distance,
+            String flag,
+            Model model
+    );
+
+    String primaryInput(
+            String dateToString,
+            Long number,
+            Double fuelStart,
+            Double fuelFinish,
+            Long mileageStart,
+            Long mileageFinish,
+            Long fueling,
+            Double consumptionNorm,
+            Double consumptionFact,
+            Model model
+    );
+
+    String output(String date, Model model);
+
+    String fillingOutTheWaybill();
+
+    String createWaybill(String data) throws IOException;
+}
