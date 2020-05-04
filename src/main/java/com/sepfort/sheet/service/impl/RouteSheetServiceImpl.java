@@ -31,12 +31,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     private String dataNow;
     private RouteSheet lastRouteSheet;
     private boolean isAddRouteSheet = true;
+    private int lastLine;
 
     @Autowired
     private RouteSheetRepo routeSheetRepo;
     @Autowired
     private RouteSheetService routeSheetService;
-
 
     // Добавление первого путевого листа
     public void savePrimaryInput(
@@ -106,7 +106,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             RouteSheet routeSheet = routeSheetRepo.findById(idMax).get();
             LocalDate lastNumber = routeSheet.getData();
             model.addAttribute("lastNumber", lastNumber);
-            //      routeSheetService.generalInformation(model);
         }
         return "information";
     }
@@ -303,30 +302,71 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             i++;
         }
 
-        xssfSheet.ungroupRow(58, 66);
-        CellRangeAddress cellRangeAddress1 = new CellRangeAddress(58, 60, 0, 0);
-        xssfSheet.addMergedRegion(cellRangeAddress1);
-        CellRangeAddress cellRangeAddress2 = new CellRangeAddress(58, 60, 1, 1);
-        xssfSheet.addMergedRegion(cellRangeAddress2);
-        CellRangeAddress cellRangeAddress3 = new CellRangeAddress(58, 60, 2, 2);
-        xssfSheet.addMergedRegion(cellRangeAddress3);
-        CellRangeAddress cellRangeAddress4 = new CellRangeAddress(58, 60, 3, 3);
-        xssfSheet.addMergedRegion(cellRangeAddress4);
-        CellRangeAddress cellRangeAddress5 = new CellRangeAddress(58, 60, 4, 4);
-        xssfSheet.addMergedRegion(cellRangeAddress5);
-        CellRangeAddress cellRangeAddress6 = new CellRangeAddress(58, 60, 5, 5);
-        xssfSheet.addMergedRegion(cellRangeAddress6);
-        CellRangeAddress cellRangeAddress7 = new CellRangeAddress(58, 60, 6, 7);
-        xssfSheet.addMergedRegion(cellRangeAddress7);
-        CellRangeAddress cellRangeAddress8 = new CellRangeAddress(58, 60, 8, 11);
-        xssfSheet.addMergedRegion(cellRangeAddress8);
-        Row row = xssfSheet.getRow(58);
-        Cell cell = row.getCell(0);
-        cell.setCellValue("111");
+        LocalDate localDate = LocalDate.parse(data);
+        RouteSheet routeSheet = routeSheetRepo.findByData(localDate);
+        int numberOfRoutes = routeSheet.getAddress().size() * 3;
+        System.out.println(">>> Количество " + numberOfRoutes);
+        for (int i = 0; i < numberOfRoutes; i = i + 3) {
+            System.out.println(">>> " + i);
+            CellRangeAddress cellRangeAddress1 = new CellRangeAddress(58 + i, 60 + i, 0, 0);
+            xssfSheet.addMergedRegion(cellRangeAddress1);
+            CellRangeAddress cellRangeAddress2 = new CellRangeAddress(58 + i, 60 + i, 1, 1);
+            xssfSheet.addMergedRegion(cellRangeAddress2);
+            CellRangeAddress cellRangeAddress3 = new CellRangeAddress(58 + i, 60 + i, 2, 2);
+            xssfSheet.addMergedRegion(cellRangeAddress3);
+            CellRangeAddress cellRangeAddress4 = new CellRangeAddress(58 + i, 60 + i, 3, 3);
+            xssfSheet.addMergedRegion(cellRangeAddress4);
+            CellRangeAddress cellRangeAddress5 = new CellRangeAddress(58 + i, 60 + i, 4, 5);
+            xssfSheet.addMergedRegion(cellRangeAddress5);
+            CellRangeAddress cellRangeAddress6 = new CellRangeAddress(58 + i, 60 + i, 6, 6);
+            xssfSheet.addMergedRegion(cellRangeAddress6);
+            CellRangeAddress cellRangeAddress7 = new CellRangeAddress(58 + i, 60 + i, 7, 8);
+            xssfSheet.addMergedRegion(cellRangeAddress7);
+            CellRangeAddress cellRangeAddress8 = new CellRangeAddress(58 + i, 60 + i, 9, 12);
+            xssfSheet.addMergedRegion(cellRangeAddress8);
+            lastLine = 60 + i;
+        }
+
+        //Ввод последних строк
+        Row row1 = xssfSheet.createRow(lastLine + 1);
+        Cell cell1 = row1.createCell(0);
+        cell1.setCellValue("пройдено, км");
+        Cell cell2 = row1.createCell(6);
+        cell2.setCellValue("за часы, руб.коп.");
+
+        Row row2 = xssfSheet.createRow(lastLine + 3);
+        Cell cell3 = row2.createCell(6);
+        cell3.setCellValue("Итого, руб.коп.");
+
+        Row row3 = xssfSheet.createRow(lastLine + 5);
+        Cell cell4 = row3.createCell(0);
+        cell4.setCellValue("Расчет произвел");
+        Cell cell5 = row3.createCell(1);
+        cell5.setCellValue("Генеральный директор");
+        Cell cell6 = row3.createCell(6);
+        cell6.setCellValue("Ковалев Г.П.");
+
+        Row row4 = xssfSheet.createRow(lastLine + 6);
+        Cell cell7 = row4.createCell(1);
+        cell7.setCellValue("должность");
+        Cell cell8 = row4.createCell(2);
+        cell8.setCellValue("подпись");
+        Cell cell9 = row4.createCell(6);
+        cell9.setCellValue("расшифровка подписи");
+
+        // Ввод пройденных километров за маршрутами
+        Row row = xssfSheet.getRow(lastLine + 1);
+        Cell cell = row.getCell(2);
+
+        // Здесь getDistance()  возвращает null
+
+        cell.setCellValue(routeSheet.getDistance());
+        System.out.println(">>> Пройденное расстояние = " + routeSheet.getDistance());
 
         FileOutputStream fos = new FileOutputStream("C:/exp/tmp/new.xlsx");
         workbook.write(fos);
         fos.close();
+        lastLine = 0;
         return "menu";
     }
 
