@@ -354,20 +354,74 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         Cell cell9 = row4.createCell(6);
         cell9.setCellValue("расшифровка подписи");
 
-        // Ввод пройденных километров за маршрутами
-        Row row = xssfSheet.getRow(lastLine + 1);
-        Cell cell = row.getCell(2);
-
-        // Здесь getDistance()  возвращает null
-
-        cell.setCellValue(routeSheet.getDistance());
-        System.out.println(">>> Пройденное расстояние = " + routeSheet.getDistance());
 
         FileOutputStream fos = new FileOutputStream("C:/exp/tmp/new.xlsx");
         workbook.write(fos);
         fos.close();
+
+        // После создания в маршрутном листе списка маршрутов и нижней части - заполняем её
+
+        // Ввод пройденных километров за маршрутами
+        FileInputStream fileIS2 = new FileInputStream(new File("C:/exp/tmp/new.xlsx"));
+        XSSFWorkbook workbook2 = new XSSFWorkbook(fileIS2);
+        XSSFSheet xssfSheet2 = workbook2.getSheetAt(0);
+
+        Row row5 = xssfSheet2.getRow(lastLine + 1);
+        Cell cell10 = row5.createCell(2);
+        cell10.setCellValue(routeSheet.getDistance());
+
+        //Ввод маршрутов
+        Row row6;
+        int index = 0;
+        List<Integer> list = Arrays.asList(0, 2, 3, 7);
+        for (int i = 0; i < numberOfRoutes; i = i + 3) {
+            System.out.println(">>> " + i);
+            row6 = xssfSheet2.getRow(58 + i);
+            Cell cell11 = row6.createCell(list.get(0));
+
+    //        String fourth = new String(habrAsArrayOfChars, 0, 4); // "habr"
+            cell11.setCellValue(routeSheet.getNumber());
+            Cell cell12 = row6.createCell(list.get(1));
+            cell12.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDeparture_point()));
+            Cell cell13 = row6.createCell(list.get(2));
+            cell13.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDestination()));
+            Cell cell14 = row6.createCell(list.get(3));
+            cell14.setCellValue(lineBreak(String.valueOf(routeSheet.getAddress().get(index).getDistance())));
+            index++;
+        }
+
+        FileOutputStream fos2 = new FileOutputStream("C:/exp/tmp/new.xlsx");
+        workbook2.write(fos2);
+        fos.close();
+
         lastLine = 0;
         return "menu";
+    }
+
+    private String lineBreak(String text) {
+        String result;
+        String result2;
+        String result3 = "";
+        String result4;
+        String l = String.valueOf(text);
+        char[] chars =l.toCharArray();
+        System.out.println(">>> Длина строки = " + chars.length);
+        int dif = chars.length - 15;
+        if (chars.length < 15) {
+            result3 = l;
+        }
+        if (chars.length >=15 && chars.length < 30) {
+            result = new String(chars ,0 ,15);
+            result2 = new String(chars, 15, chars.length - 15);
+            result3 = result + "\n" +result2;
+        }
+        if (chars.length >= 30) {
+            result = new String(chars ,0 ,15);
+            result2 = new String(chars, 15, 15);
+            result4 = new String(chars, 30, chars.length - 30);
+            result3 = result + "\n" + result2 + "\n" + result4;
+        }
+        return  result3;
     }
 
     private List<String> enteringWaybillData(String data) {
