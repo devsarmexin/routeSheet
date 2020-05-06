@@ -16,11 +16,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
-import java.io.*;
+import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 @Service
 public class RouteSheetServiceImpl implements RouteSheetService {
@@ -285,11 +294,28 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override
     public String createWaybill(String data) throws IOException {
+
+        LocalDate localDate = LocalDate.parse(data);
+        RouteSheet routeSheet = routeSheetRepo.findByData(localDate);
+        if ( routeSheet == null) {
+            return "menu";
+        }
+
         List<Integer> integerList = Arrays.asList(4, 10, 6, 3, 6, 7, 21, 11, 30, 4, 35, 4, 38, 11, 39, 11, 40, 11, 41, 11, 42, 11, 49, 11);
         System.out.println(">>> data = " + data);
         List<String> value = enteringWaybillData(data);
 
-        FileInputStream fileIS = new FileInputStream(new File("C:/exp/tmp/new.xlsx"));
+        System.out.println(">>> Запись путевого листа в память");
+        Path p = Paths.get("./src/main/resources/templates/forma/routeSheetTemplate.xlsx");
+        Path newFile = Files.copy(p, Paths.get("./src/main/resources/templates/forma/sheet/routeSheetTemplate.xlsx"), REPLACE_EXISTING);
+        String newPath = "./src/main/resources/templates/forma/sheet/routeSheet" + routeSheet.getData() + ".xlsx";
+        if (Files.isExecutable(newFile)) {
+            return "menu";
+        }
+        Files.move(newFile, newFile.resolveSibling("routeSheet" + routeSheet.getData() + ".xlsx"));
+
+        System.out.println(">>> Записали");
+        FileInputStream fileIS = new FileInputStream(new File(newPath));
         XSSFWorkbook workbook = new XSSFWorkbook(fileIS);
         XSSFSheet xssfSheet = workbook.getSheetAt(0);
 
@@ -302,8 +328,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             i++;
         }
 
-        LocalDate localDate = LocalDate.parse(data);
-        RouteSheet routeSheet = routeSheetRepo.findByData(localDate);
         int numberOfRoutes = routeSheet.getAddress().size() * 3;
         System.out.println(">>> Количество " + numberOfRoutes);
         for (int i = 0; i < numberOfRoutes; i = i + 3) {
@@ -355,14 +379,14 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         cell9.setCellValue("расшифровка подписи");
 
 
-        FileOutputStream fos = new FileOutputStream("C:/exp/tmp/new.xlsx");
+        FileOutputStream fos = new FileOutputStream(newPath);
         workbook.write(fos);
         fos.close();
 
         // После создания в маршрутном листе списка маршрутов и нижней части - заполняем её
 
         // Ввод пройденных километров за маршрутами
-        FileInputStream fileIS2 = new FileInputStream(new File("C:/exp/tmp/new.xlsx"));
+        FileInputStream fileIS2 = new FileInputStream(new File(newPath));
         XSSFWorkbook workbook2 = new XSSFWorkbook(fileIS2);
         XSSFSheet xssfSheet2 = workbook2.getSheetAt(0);
 
@@ -378,8 +402,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             System.out.println(">>> " + i);
             row6 = xssfSheet2.getRow(58 + i);
             Cell cell11 = row6.createCell(list.get(0));
-
-    //        String fourth = new String(habrAsArrayOfChars, 0, 4); // "habr"
             cell11.setCellValue(routeSheet.getNumber());
             Cell cell12 = row6.createCell(list.get(1));
             cell12.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDeparture_point()));
@@ -390,9 +412,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             index++;
         }
 
-        FileOutputStream fos2 = new FileOutputStream("C:/exp/tmp/new.xlsx");
+        FileOutputStream fos2 = new FileOutputStream(newPath);
         workbook2.write(fos2);
         fos.close();
+
+        Desktop.getDesktop().mail();
+    //    Desktop.getDesktop().print(new File("C://Users/SGavrilov/Desktop/blue-butterfly-images-clipart-13.png"));
 
         lastLine = 0;
         return "menu";
@@ -404,24 +429,24 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         String result3 = "";
         String result4;
         String l = String.valueOf(text);
-        char[] chars =l.toCharArray();
+        char[] chars = l.toCharArray();
         System.out.println(">>> Длина строки = " + chars.length);
         int dif = chars.length - 15;
         if (chars.length < 15) {
             result3 = l;
         }
-        if (chars.length >=15 && chars.length < 30) {
-            result = new String(chars ,0 ,15);
+        if (chars.length >= 15 && chars.length < 30) {
+            result = new String(chars, 0, 15);
             result2 = new String(chars, 15, chars.length - 15);
-            result3 = result + "\n" +result2;
+            result3 = result + "\n" + result2;
         }
         if (chars.length >= 30) {
-            result = new String(chars ,0 ,15);
+            result = new String(chars, 0, 15);
             result2 = new String(chars, 15, 15);
             result4 = new String(chars, 30, chars.length - 30);
             result3 = result + "\n" + result2 + "\n" + result4;
         }
-        return  result3;
+        return result3;
     }
 
     private List<String> enteringWaybillData(String data) {
