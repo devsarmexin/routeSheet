@@ -3,8 +3,7 @@
 <@c.page>
     <h5>Выберите дату маршрутного листа, для которого добавляются маршруты:</h5>
     <form method="get" action="/edit">
-        <input type="date" name="date" required placeholder="На какую дату ?">
+        <input type="date" name="date" required placeholder="На какую дату ?"><br>
         <button type="submit">ввести</button>
     </form>
-    <a href="/">Выход в меню</a>
 </@c.page>
