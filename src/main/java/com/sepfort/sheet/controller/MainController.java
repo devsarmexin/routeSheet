@@ -1,108 +1,35 @@
 package com.sepfort.sheet.controller;
 
-import com.sepfort.sheet.domain.User;
-import com.sepfort.sheet.service.impl.RouteSheetServiceImpl;
+import com.sepfort.sheet.repo.RouteSheetRepo;
+import com.sepfort.sheet.service.RouteSheetService;
+import com.sepfort.sheet.service.impl.CreateWaybillImpl;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
-@Slf4j
 @Controller
 public class MainController {
     @Autowired
-    private RouteSheetServiceImpl routeSheetService;
+    private RouteSheetService routeSheetService;
+    @Autowired
+    private CreateWaybillImpl createWaybillImpl;
+    @Autowired
+    private RouteSheetRepo routeSheetRepo;
 
     @GetMapping  // Вход
-    public String menuEntry() {
-        System.out.println(">>> ВХОД");
+    public String menuEntry(Model model) {
+        model.addAttribute("errorMessage", "");
         return "menu";
     }
 
-    @GetMapping("/information")  // Вывод информации
-    public String generalInformation(Model model) {
-        return routeSheetService.generalInformation(model);
-    }
-
-    @GetMapping("/filling") // Ввод заправки
-    public String fillingOutTheWaybill() {
-        return routeSheetService.fillingOutTheWaybill();
-    }
-
-    @GetMapping("/fueling") // Ввод новых мапшрутов
-    public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data) {
-        return routeSheetService.goToAddRoute(fuel, data);
-    }
-
-    @GetMapping("/edit") // Получаем дату (из date.ftlh) и идём заполнять маршруты
-    public String edit(@RequestParam String date) {
-        System.out.println(">>> edit");
-        return routeSheetService.edit(date);
-    }
-
-    @GetMapping("/edit2") // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
-    public String edit2(
-            @RequestParam Long distance,
-            @RequestParam String address1,
-            @RequestParam String address2,
-            @RequestParam String flag
-    ) {
-        return routeSheetService.addRoute(distance, address1, address2, flag);
-    }
-
-    @GetMapping("/date") // Запрос даты для добавления маршрутов (далее /edit)
-    public String date() {
-        return "date";
-    }
-
-    @GetMapping("/date2")
-    public String date2() {
-        return "date2";
-    }
-
-    @GetMapping("/date3")
-    public String date3() {
-        return "dataForCreateWaybillAdd";
-    }
-
-    @PostMapping("/add")  // Добавление путевого листа
-    public String addRouteSheet(
-            @AuthenticationPrincipal User user,
-            @RequestParam String address1,
-            @RequestParam String address2,
-            @RequestParam Long distance,
-            @RequestParam String flag,
-            Model model) {
-        System.out.println(">>> Начали процесс добавления новых маршрутов");
-        return routeSheetService.addRouteSheet(user, address1, address2, distance, flag, model);
-    }
-
-    @GetMapping("/output")  //Вывод маршрутного листа по дате
-    public String output(@RequestParam String date, Model model) {
-        return routeSheetService.output(date, model);
-    }
-
-    @GetMapping("/statistics") //Вывод главного экрана со статистикой и действиями
-    public String statistics() {
-        return "statistics";
-    }
-
-    @Transactional   //Первичное заполнение первого путевого листа
-    @PostMapping("/primary_input")
+    @PostMapping("/primary_input") //Первичное заполнение первого путевого листа
     public String primaryInput(
             @RequestParam String dateToString,
             @RequestParam Long number,
@@ -115,31 +42,75 @@ public class MainController {
             @RequestParam Double consumptionFact,
             Model model
     ) {
-        return routeSheetService.primaryInput(dateToString, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
+        return routeSheetService.addingFirstRouteSheetToDatabase(dateToString, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
+    }
+
+    @GetMapping("/routeSheet") // Вывод приветственной информации
+    public String intro() {
+        return "routeSheet";
+    }
+
+    @GetMapping("/information")  // Вывод информации
+    public String generalInformation(Model model) {
+        return routeSheetService.generalInformation(model);
+    }
+
+    @GetMapping("/filling")
+    public String fillingOutTheWaybill() {
+        if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
+            return "first";
+        }
+        return "fueling"; // Запрос данных (дата, запрвка) для добавления ПЛ
+    }
+
+    @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа
+    public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
+        return routeSheetService.addRouteSheetToDatabase(fuel, data, isEdit, model);
+    }
+
+    @GetMapping("/editRoute") // Получаем дату (из date.ftlh) и идём заполнять маршруты
+    public String edit(@RequestParam String date, @RequestParam(defaultValue = "no") String isEdit, Model model) {
+        return routeSheetService.addingRoutesToRoutSheet(date, isEdit, model);
+    }
+
+    @GetMapping("/editingRoutes") // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
+    public String edit2(
+            @RequestParam Long distance,
+            @RequestParam String address2,
+            @RequestParam String flag,
+            Model model
+    ) {
+        return routeSheetService.editingRoutesToRoutSheet(distance, address2, flag, model);
+    }
+
+    @GetMapping("/addingRoutes") // Запрос даты для добавления маршрутов (далее /edit)
+    public String date() {
+        return "date";
+    }
+
+    @GetMapping("/viewRouteSheetByDate") // Запрос даты для просмотра ПЛ
+    public String date2() {
+        return "dateForViewRouteSheetByDate";
+    }
+
+    @GetMapping("/formExcel") // Запрос даты для формирования ПЛ в Excel
+    public String date3() {
+        return "dataForCreateWaybillAdd";
+    }
+
+    @GetMapping("/output")  //Вывод маршрутного листа по дате
+    public String output(@RequestParam String date, Model model) {
+        return routeSheetService.output(date, model);
     }
 
     @GetMapping("/createWaybill")
-    public String createWaybill(@RequestParam String data) throws IOException {
-//        XSSFWorkbook xssfWorkbook = new XSSFWorkbook();
-//        Sheet sheet = xssfWorkbook.createSheet("first");
-//        Row row = sheet.createRow(0);
-//        Cell cell = row.createCell(0);
-//        File file = new File("C://exp", "new.xls");
-//        FileOutputStream fos = new FileOutputStream("C:/exp.new.xls");
-//        xssfWorkbook.write(fos);
-//        fos.close();
+    public String createWaybill(@RequestParam String data, Model model) throws IOException {
+        return createWaybillImpl.createWaybill(data, model);
+    }
 
-        // прочитать данные из xlsx
-//        FileInputStream fileIS = new FileInputStream(new File("C:/exp/tmp/new.xlsx"));
-//        XSSFWorkbook workbook = new XSSFWorkbook (fileIS);
-//        XSSFSheet xssfSheet = workbook.getSheetAt(0);
-//        var result = xssfSheet.getRow(1).getCell(0);
-//        System.out.println(">>> " + result);
-//        return "menu";
-
-        // записать данные в xlsx
-
-        return routeSheetService.createWaybill(data);
+    @GetMapping("/waybillEditing")
+    public String waybillEditing() {
+        return "fuelingForEdit";
     }
 }
 

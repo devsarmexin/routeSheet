@@ -1,8 +1,12 @@
 <#import "parts/common.ftlh" as c>
 
 <@c.page>
-<div>
-    <p>Последний путевой лист за ${lastNumber} число</p><br><br>
-</div>
+    <p>Последний путевой лист за ${lastNumber} число</p>
+    Всего путевых листов:
+    <div>
+        <#list routeSheetList as routeSheet>
+            <td>${routeSheet.getData()}</td><br>
+        </#list>
+    </div>
 
 </@c.page>

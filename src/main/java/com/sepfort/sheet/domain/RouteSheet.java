@@ -1,7 +1,5 @@
 package com.sepfort.sheet.domain;
 
-import lombok.NonNull;
-
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.List;

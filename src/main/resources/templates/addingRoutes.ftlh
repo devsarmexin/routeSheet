@@ -1,9 +1,9 @@
 <#import "parts/common.ftlh" as c>
 
 <@c.page>
-    <form method="get" action="/edit2">
-        <input type="number" name="distance" required placeholder="Расстояние"><br>
-        <input type="text" name="address1" required placeholder="Откуда"/><br>
+    Первая точка: ${firstPoint}
+    <form method="get" action="/editingRoutes">
+        <input type="number" name="distance" required step="1" min="0" placeholder="Расстояние"><br>
         <input type="text" name="address2" required placeholder="Куда"/><br>
         <h5>Есть ещё адреса?</h5><br>
         <input type="radio" name="flag" value="yes">есть<br>

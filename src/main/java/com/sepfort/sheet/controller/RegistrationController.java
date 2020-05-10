@@ -18,13 +18,11 @@ public class RegistrationController {
 
     @GetMapping("/registration")
     public String registration() {
-        System.out.println(">>> Идём на страницу регистрации - registration");
         return "registration";
     }
 
     @PostMapping("/registration")
     public String addUser(User user, Model model) {
-        System.out.println(">>>>>>>>>>>>>>>> Регистрация нового пользователя" );
         User userFromDB = userRepo.findByUsername(user.getUsername());
         if (userFromDB != null) {
             model.addAttribute("message", "User is exists!");

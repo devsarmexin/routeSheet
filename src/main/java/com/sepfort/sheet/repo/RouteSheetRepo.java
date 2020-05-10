@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface RouteSheetRepo extends CrudRepository<RouteSheet, Long> {
@@ -17,4 +18,6 @@ public interface RouteSheetRepo extends CrudRepository<RouteSheet, Long> {
 
     @Query(value = "SELECT MAX (data) AS data from RouteSheet")
     LocalDate findDataMax();
+
+    List<RouteSheet> findAllByDataIsNotNull();
 }

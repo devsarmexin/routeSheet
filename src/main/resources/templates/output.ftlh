@@ -1,7 +1,8 @@
 <#import "parts/common.ftlh" as c>
 
 <@c.page>
-    Страница вывода, распечатки
+    Маршрутный лист на : ${numberRouteSheet}
+    <br><br>
 <div>
     <table border="2">
         <tr>
@@ -50,5 +51,4 @@
         </table>
     </#list>
 </div>
-    <a href="/">Выход в меню</a>
 </@c.page>
