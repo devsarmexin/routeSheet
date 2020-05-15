@@ -2,6 +2,6 @@
 *.class
 *.jar
 target
-*.idea
+.idea/
 *.xlsx
-*.iml
+routeSheet.iml
