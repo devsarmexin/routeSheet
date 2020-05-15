@@ -27,6 +27,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override  // Добавление в БД первого ПЛ
     public String addingFirstRouteSheetToDatabase(String dateToString, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Model model) {
+        System.out.println(">>>>> " + dateToString);
         localDateFromAddRoutes = LocalDate.parse(dateToString);
         var saving = consumptionFact - consumptionNorm;
         routeSheetRepo.save(new RouteSheet(localDateFromAddRoutes, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, saving));
