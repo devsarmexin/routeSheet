@@ -3,7 +3,6 @@ package com.sepfort.sheet.controller;
 import com.sepfort.sheet.repo.RouteSheetRepo;
 import com.sepfort.sheet.service.RouteSheetService;
 import com.sepfort.sheet.service.impl.CreateWaybillImpl;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -62,7 +61,7 @@ public class MainController {
         }
         return "fueling"; // Запрос данных (дата, запрвка) для добавления ПЛ
     }
-
+    
     @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа
     public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
         return routeSheetService.addRouteSheetToDatabase(fuel, data, isEdit, model);
