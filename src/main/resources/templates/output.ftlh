@@ -35,7 +35,7 @@
     <br>
 </div>
 <div>
-    <#list routeSheet.getAddress() as address>
+    <#list routeSheet.getRoutes() as routes>
         <table border="2">
             <tr>
                 <td>Начальная точка</td>
@@ -43,9 +43,9 @@
                 <td>Расстояние</td>
             </tr>
             <tr>
-                <td>${address.getDeparture_point()}</td>
-                <td>${address.getDestination()}</td>
-                <td>${address.getDistance()}</td>
+                <td>${routes.getDeparture_point()}</td>
+                <td>${routes.getDestination()}</td>
+                <td>${routes.getDistance()}</td>
             </tr>
             <br>
         </table>

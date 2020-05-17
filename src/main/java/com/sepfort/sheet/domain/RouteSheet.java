@@ -28,19 +28,19 @@ public class RouteSheet {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "routesheet_id")
-    private List<Addresses> address;
+    private List<Route> routes;
 
     public RouteSheet() {
     }
 
-    public RouteSheet(LocalDate data, Long fueling, Long distance, List<Addresses> address) {
+    public RouteSheet(LocalDate data, Long fueling, Long distance, List<Route> routes) {
         this.data = data;
         this.fueling = fueling;
         this.distance = distance;
-        this.address = address;
+        this.routes = routes;
     }
 
-    public RouteSheet(LocalDate data, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving, Long distance, List<Addresses> address
+    public RouteSheet(LocalDate data, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving, Long distance, List<Route> routes
     ) {
         this.data = data;
         this.number = number;
@@ -53,7 +53,7 @@ public class RouteSheet {
         this.consumptionFact = consumptionFact;
         this.saving = saving;
         this.distance = distance;
-        this.address = address;
+        this.routes = routes;
     }
 
     public RouteSheet(LocalDate data, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
@@ -165,12 +165,12 @@ public class RouteSheet {
         this.author = author;
     }
 
-    public List<Addresses> getAddress() {
-        return address;
+    public List<Route> getRoutes() {
+        return routes;
     }
 
-    public void setAddress(List<Addresses> address) {
-        this.address = address;
+    public void setRoutes(List<Route> routes) {
+        this.routes = routes;
     }
 
     public Long getNumber() {

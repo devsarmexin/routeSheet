@@ -1,12 +1,13 @@
 package com.sepfort.sheet.service.impl;
 
-import com.sepfort.sheet.domain.Addresses;
+import com.sepfort.sheet.domain.Route;
 import com.sepfort.sheet.domain.RouteSheet;
 import com.sepfort.sheet.repo.RouteSheetRepo;
 import com.sepfort.sheet.service.RouteSheetService;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
@@ -19,11 +20,13 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     private boolean pointFlag = true;
     private String newPoint;
     private Long sumDistance = 0L;
-    private List<Addresses> addressesList = new ArrayList<>();
+    private List<Route> routeList = new ArrayList<>();
     private LocalDate localDateFromAddRoutes; // дата первого ПЛ
 
     @Autowired
     private RouteSheetRepo routeSheetRepo;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override  // Добавление в БД первого ПЛ
     public String addingFirstRouteSheetToDatabase(String dateToString, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Model model) {
@@ -63,12 +66,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             model.addAttribute("errorMessage", "На " + date + " нет маршрутного листа!");
             return "menu";
         }
-        if (!routeSheetRepo.findByData(LocalDate.parse(date)).getAddress().isEmpty() && isEdit.equals("no")) {
+        if (!routeSheetRepo.findByData(LocalDate.parse(date)).getRoutes().isEmpty() && isEdit.equals("no")) {
             model.addAttribute("errorMessage", "Нельзя добавить маршруты, они уже заполнены.");
             return "menu";
         }
         if (isEdit.equals("yes")) {
-            routeSheetRepo.findByData(LocalDate.parse(date)).setAddress(new ArrayList<>());
+            routeSheetRepo.findByData(LocalDate.parse(date)).setRoutes(new ArrayList<>());
         }
         localDateFromAddRoutes = LocalDate.parse(date);
         model.addAttribute("firstPoint", "Маршала Говорова");
@@ -113,22 +116,22 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             firstPoint = newPoint;
         }
         newPoint = address2;
-        var addresses = new Addresses(firstPoint, address2, distance);
+        var route = new Route(firstPoint, address2, distance);
         sumDistance += distance;
-        addressesList.add(addresses);
+        routeList.add(route);
         model.addAttribute("firstPoint", newPoint);
         if (flag.equals("no")) {
             localDateFromAddRoutes = routeSheetRepo.findDataMax();
             var routeSheet = routeSheetRepo.findByData(localDateFromAddRoutes);
-            var routeSheetForSave = addNewRouteSheet(routeSheet.getData(), routeSheet.getNumber(), routeSheet, routeSheet.getFueling(), sumDistance, addressesList);
+            var routeSheetForSave = addNewRouteSheet(routeSheet.getData(), routeSheet.getNumber(), routeSheet, routeSheet.getFueling(), sumDistance, routeList);
             routeSheetRepo.deleteById(routeSheet.getId());
             routeSheetRepo.save(routeSheetForSave);
 
-            addressesList = new ArrayList<>();
+            routeList = new ArrayList<>();
             localDateFromAddRoutes = null;
             sumDistance = 0L;
             pointFlag = true;
-            addressesList = new ArrayList<>();
+            routeList = new ArrayList<>();
             model.addAttribute("errorMessage", "Закончили ввод маршрутов");
             return "menu";
         }
@@ -136,7 +139,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     }
 
     // ПОДСЧЕТ значений полей на новый путевой лист
-    public RouteSheet addNewRouteSheet(LocalDate date, Long number, RouteSheet lastRouteSheet, Long fueling, Long distance, List<Addresses> addressesList) {
+    public RouteSheet addNewRouteSheet(LocalDate date, Long number, RouteSheet lastRouteSheet, Long fueling, Long distance, List<Route> addressesList) {
 
         Double consumptionNorm = Precision.round(12D * distance / 100D, 2);
         // Переделать, что бы проьежуток выбирать от даты до даты

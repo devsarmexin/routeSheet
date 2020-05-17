@@ -66,7 +66,7 @@ public class CreateWaybillImpl implements CreateWaybill {
             i++;
         }
 
-        int numberOfRoutes = routeSheet.getAddress().size() * 3;
+        int numberOfRoutes = routeSheet.getRoutes().size() * 3;
         for (int i = 0; i < numberOfRoutes; i = i + 3) {
             System.out.println(">>> " + i);
             CellRangeAddress cellRangeAddress1 = new CellRangeAddress(58 + i, 60 + i, 0, 0);
@@ -139,11 +139,11 @@ public class CreateWaybillImpl implements CreateWaybill {
             Cell cell11 = row6.createCell(list.get(0));
             cell11.setCellValue(routeSheet.getNumber());
             Cell cell12 = row6.createCell(list.get(1));
-            cell12.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDeparture_point()));
+            cell12.setCellValue(lineBreak(routeSheet.getRoutes().get(index).getDeparture_point()));
             Cell cell13 = row6.createCell(list.get(2));
-            cell13.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDestination()));
+            cell13.setCellValue(lineBreak(routeSheet.getRoutes().get(index).getDestination()));
             Cell cell14 = row6.createCell(list.get(3));
-            cell14.setCellValue(lineBreak(String.valueOf(routeSheet.getAddress().get(index).getDistance())));
+            cell14.setCellValue(lineBreak(String.valueOf(routeSheet.getRoutes().get(index).getDistance())));
             index++;
         }
 

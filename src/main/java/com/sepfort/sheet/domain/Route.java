@@ -5,24 +5,24 @@ import lombok.NonNull;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "addresses")
-public class Addresses {
+@Table(name = "route")
+public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @NonNull
     private String departure_point;
     @NonNull
-    private String destination;
+    private String destination_point;
     @NonNull
     private Long distance;
 
-    public Addresses() {
+    public Route() {
     }
 
-    public Addresses(String departure_point, String destination, Long distance) {
+    public Route(String departure_point, String destination, Long distance) {
         this.departure_point = departure_point;
-        this.destination = destination;
+        this.destination_point = destination;
         this.distance = distance;
     }
 
@@ -43,11 +43,11 @@ public class Addresses {
     }
 
     public String getDestination() {
-        return destination;
+        return destination_point;
     }
 
     public void setDestination(String destination) {
-        this.destination = destination;
+        this.destination_point = destination;
     }
 
     public Long getDistance() {
