@@ -33,12 +33,12 @@ public class RouteSheet {
     public RouteSheet() {
     }
 
-    public RouteSheet(LocalDate data, Long fueling, Long distance, List<Addresses> address) {
-        this.data = data;
-        this.fueling = fueling;
-        this.distance = distance;
-        this.address = address;
-    }
+//    public RouteSheet(LocalDate data, Long fueling, Long distance, List<Addresses> address) {
+//        this.data = data;
+//        this.fueling = fueling;
+//        this.distance = distance;
+//        this.address = address;
+//    }
 
     public RouteSheet(LocalDate data, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving, Long distance, List<Addresses> address
     ) {
