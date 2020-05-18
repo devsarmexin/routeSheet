@@ -14,10 +14,10 @@ public interface RouteSheetRepo extends CrudRepository<RouteSheet, Long> {
     @Query(value = "SELECT MAX (id) AS id FROM RouteSheet")
     Long findMaxId();
 
-    RouteSheet findByData(LocalDate data);
+    RouteSheet findByTripDate(LocalDate tripDate);
 
-    @Query(value = "SELECT MAX (data) AS data from RouteSheet")
+    @Query(value = "SELECT MAX (tripDate) AS tripDate from RouteSheet")
     LocalDate findDataMax();
 
-    List<RouteSheet> findAllByDataIsNotNull();
+    List<RouteSheet> findAllByTripDateIsNotNull();
 }

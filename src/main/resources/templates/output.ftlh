@@ -8,7 +8,7 @@
         <tr>
             <td>Номер</td>
             <td>Дата</td>
-            <td>Остаток нчало дня, л</td>
+            <td>Остаток на начало дня, л</td>
             <td>км, начало дня</td>
             <td>км, конец дня</td>
             <td>км</td>
@@ -16,11 +16,11 @@
             <td>расход по норме, л</td>
             <td>расход фактический, л</td>
             <td>экономия</td>
-            <td>остаток конец дня, л</td>
+            <td>остаток на конец дня, л</td>
         </tr>
         <tr>
-            <td>${routeSheet.number}</td>
-            <td>${routeSheet.data}</td>
+            <td>${routeSheet.waybillNumber}</td>
+            <td>${routeSheet.tripDate}</td>
             <td>${routeSheet.getFuelStart()}</td>
             <td>${routeSheet.getMileageStart()}</td>
             <td>${routeSheet.getMileageFinish()}</td>

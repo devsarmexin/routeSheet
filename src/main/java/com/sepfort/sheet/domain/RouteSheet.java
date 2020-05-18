@@ -5,21 +5,43 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "routesheet")
+@Table(name = "route_sheet")
 public class RouteSheet {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private Long number;
-    private LocalDate data;
+
+    @Column(name = "waybill_number")
+    private Long waybillNumber;
+
+    @Column(name = "trip_date")
+    private LocalDate tripDate;
+
+    @Column(name = "fuel_start")
     private Double fuelStart;
+
+    @Column(name = "fuel_finish")
     private Double fuelFinish;
+
+    @Column(name = "mileage_start")
     private Long mileageStart;
+
+    @Column(name = "mileage_finish")
     private Long mileageFinish;
+
+    @Column(name = "fueling")
     private Long fueling;
+
+    @Column(name = "consumption_norm")
     private Double consumptionNorm;
+
+    @Column(name = "consumption_fact")
     private Double consumptionFact;
+
+    @Column(name = "saving")
     private Double saving;
+
+    @Column(name = "distance")
     private Long distance;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -27,23 +49,23 @@ public class RouteSheet {
     private User author;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "routesheet_id")
+    @JoinColumn(name = "route_sheet_id")
     private List<Route> routes;
 
     public RouteSheet() {
     }
 
-    public RouteSheet(LocalDate data, Long fueling, Long distance, List<Route> routes) {
-        this.data = data;
+    public RouteSheet(LocalDate tripDate, Long fueling, Long distance, List<Route> routes) {
+        this.tripDate = tripDate;
         this.fueling = fueling;
         this.distance = distance;
         this.routes = routes;
     }
 
-    public RouteSheet(LocalDate data, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving, Long distance, List<Route> routes
+    public RouteSheet(LocalDate tripDate, Long waybillNumber, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving, Long distance, List<Route> routes
     ) {
-        this.data = data;
-        this.number = number;
+        this.tripDate = tripDate;
+        this.waybillNumber = waybillNumber;
         this.fuelStart = fuelStart;
         this.fuelFinish = fuelFinish;
         this.mileageStart = mileageStart;
@@ -56,9 +78,9 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public RouteSheet(LocalDate data, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
-        this.data = data;
-        this.number = number;
+    public RouteSheet(LocalDate tripDate, Long waybillNumber, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
+        this.tripDate = tripDate;
+        this.waybillNumber = waybillNumber;
         this.fuelStart = fuelStart;
         this.fuelFinish = fuelFinish;
         this.mileageStart = mileageStart;
@@ -77,12 +99,12 @@ public class RouteSheet {
         this.id = id;
     }
 
-    public LocalDate getData() {
-        return data;
+    public LocalDate getTripDate() {
+        return tripDate;
     }
 
-    public void setData(LocalDate data) {
-        this.data = data;
+    public void setTripDate(LocalDate tripDate) {
+        this.tripDate = tripDate;
     }
 
     public Double getFuelStart() {
@@ -173,11 +195,11 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public Long getNumber() {
-        return number;
+    public Long getWaybillNumber() {
+        return waybillNumber;
     }
 
-    public void setNumber(Long number) {
-        this.number = number;
+    public void setWaybillNumber(Long number) {
+        this.waybillNumber = number;
     }
 }

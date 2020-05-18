@@ -2,42 +2,42 @@ create sequence hibernate_sequence start 1 increment 1;
 
 create table route
 (
-    id                int8 primary key,
-    departure_point   varchar(2048) not null,
-    destination_point varchar(2048) not null,
-    distance          int8          not null,
-    routesheet_id     int8
+    id                BIGINT primary key,
+    departure_point   VARCHAR(2048) not null,
+    destination_point VARCHAR(2048) not null,
+    distance          BIGINT        not null,
+    route_sheet_id     BIGINT
 );
 
-create table routesheet
+create table route_sheet
 (
-    id               int8 primary key,
-    consumption_fact float8 not null,
-    consumption_norm float8 not null,
-    data             date   not null,
-    distance         int8,
-    fuel_finish      float8 not null,
-    fuel_start       float8 not null,
-    fueling          int8   not null,
-    mileage_finish   int8   not null,
-    mileage_start    int8   not null,
-    number           int8   not null,
-    saving           float8 not null,
-    user_id          int8
+    id               BIGINT primary key,
+    consumption_fact FLOAT  not null,
+    consumption_norm FLOAT  not null,
+    trip_date        date   not null,
+    distance         BIGINT,
+    fuel_start       FLOAT  not null,
+    fuel_finish      FLOAT  not null,
+    fueling          BIGINT not null,
+    mileage_start    BIGINT not null,
+    mileage_finish   BIGINT not null,
+    waybill_number   BIGINT not null,
+    saving           FLOAT  not null,
+    user_id          BIGINT
 );
 
 create table user_role
 (
-    user_id int8         not null,
-    roles   varchar(255) not null
+    user_id BIGINT       not null,
+    roles   VARCHAR(255) not null
 );
 
 create table usr
 (
     id       int8 primary key,
-    active   boolean      not null,
-    password varchar(255) not null,
-    username varchar(255) not null
+    active   boolean      not null default true,
+    username VARCHAR(255) not null,
+    password VARCHAR(255) not null
 );
 
 -- alter table if exists route

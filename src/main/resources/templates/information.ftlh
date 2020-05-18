@@ -5,7 +5,7 @@
     Всего путевых листов:
     <div>
         <#list routeSheetList as routeSheet>
-            <td>${routeSheet.getData()}</td><br>
+            <td>${routeSheet.getTripDate()}</td><br>
         </#list>
     </div>
 

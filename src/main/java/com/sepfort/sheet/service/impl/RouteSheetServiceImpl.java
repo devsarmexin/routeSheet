@@ -41,17 +41,17 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override  // Добавление в БД нового ПЛ
     public String addRouteSheetToDatabase(Long fuel, String data, String isEdit, Model model) {
-        if (routeSheetRepo.findByData(LocalDate.parse(data)) != null && isEdit.equals("no")) {
+        if (routeSheetRepo.findByTripDate(LocalDate.parse(data)) != null && isEdit.equals("no")) {
             model.addAttribute("errorMessage", "На " + data + " есть путевой лист");
             return "menu";
         }
         Long number;
         if (isEdit.equals("yes")) {
-            number = routeSheetRepo.findByData(routeSheetRepo.findDataMax()).getNumber();
-            var id = routeSheetRepo.findByData(LocalDate.parse(data)).getId();
+            number = routeSheetRepo.findByTripDate(routeSheetRepo.findDataMax()).getWaybillNumber();
+            var id = routeSheetRepo.findByTripDate(LocalDate.parse(data)).getId();
             routeSheetRepo.deleteById(id);
         } else {
-            number = routeSheetRepo.findByData(routeSheetRepo.findDataMax()).getNumber() + 1L;
+            number = routeSheetRepo.findByTripDate(routeSheetRepo.findDataMax()).getWaybillNumber() + 1L;
         }
         var lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
         var routeSheet = addNewRouteSheet(LocalDate.parse(data), number, lastRouteSheet, fuel, 0L, null);
@@ -62,16 +62,16 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override // Добавление и редактирование маршрутов
     public String addingRoutesToRoutSheet(String date, String isEdit, Model model) {
-        if (routeSheetRepo.findByData(LocalDate.parse(date)) == null) {
+        if (routeSheetRepo.findByTripDate(LocalDate.parse(date)) == null) {
             model.addAttribute("errorMessage", "На " + date + " нет маршрутного листа!");
             return "menu";
         }
-        if (!routeSheetRepo.findByData(LocalDate.parse(date)).getRoutes().isEmpty() && isEdit.equals("no")) {
+        if (!routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes().isEmpty() && isEdit.equals("no")) {
             model.addAttribute("errorMessage", "Нельзя добавить маршруты, они уже заполнены.");
             return "menu";
         }
         if (isEdit.equals("yes")) {
-            routeSheetRepo.findByData(LocalDate.parse(date)).setRoutes(new ArrayList<>());
+            routeSheetRepo.findByTripDate(LocalDate.parse(date)).setRoutes(new ArrayList<>());
         }
         localDateFromAddRoutes = LocalDate.parse(date);
         model.addAttribute("firstPoint", "Маршала Говорова");
@@ -85,10 +85,10 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             return "menu";
         }
         var routeSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        var lastNumber = routeSheet.getData();
+        var lastNumber = routeSheet.getTripDate();
         model.addAttribute("lastNumber", lastNumber);
 
-        List<RouteSheet> routeSheetList = routeSheetRepo.findAllByDataIsNotNull();
+        List<RouteSheet> routeSheetList = routeSheetRepo.findAllByTripDateIsNotNull();
         model.addAttribute("routeSheetList", routeSheetList);
         return "information";
     }
@@ -96,7 +96,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     @Override // Вывод маршрутного листа на экран по дате
     public String output(String date, Model model) {
         var data = LocalDate.parse(date);
-        var routeSheet = routeSheetRepo.findByData(data);
+        var routeSheet = routeSheetRepo.findByTripDate(data);
         if (routeSheet == null) {
             model.addAttribute("errorMessage", "На " + date + " маршрутного листа нет");
             return "menu";
@@ -122,8 +122,8 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         model.addAttribute("firstPoint", newPoint);
         if (flag.equals("no")) {
             localDateFromAddRoutes = routeSheetRepo.findDataMax();
-            var routeSheet = routeSheetRepo.findByData(localDateFromAddRoutes);
-            var routeSheetForSave = addNewRouteSheet(routeSheet.getData(), routeSheet.getNumber(), routeSheet, routeSheet.getFueling(), sumDistance, routeList);
+            var routeSheet = routeSheetRepo.findByTripDate(localDateFromAddRoutes);
+            var routeSheetForSave = addNewRouteSheet(routeSheet.getTripDate(), routeSheet.getWaybillNumber(), routeSheet, routeSheet.getFueling(), sumDistance, routeList);
             routeSheetRepo.deleteById(routeSheet.getId());
             routeSheetRepo.save(routeSheetForSave);
 
