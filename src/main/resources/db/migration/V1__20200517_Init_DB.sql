@@ -6,7 +6,7 @@ create table route
     departure_point   VARCHAR(2048) not null,
     destination_point VARCHAR(2048) not null,
     distance          BIGINT        not null,
-    route_sheet_id     BIGINT
+    route_sheet_id    BIGINT
 );
 
 create table route_sheet
@@ -23,31 +23,31 @@ create table route_sheet
     mileage_finish   BIGINT not null,
     waybill_number   BIGINT not null,
     saving           FLOAT  not null,
-    user_id          BIGINT
+    usr_id           BIGINT
 );
 
 create table user_role
 (
-    user_id BIGINT       not null,
+    usr_id BIGINT       not null,
     roles   VARCHAR(255) not null
 );
 
 create table usr
 (
-    id       int8 primary key,
+    id       BIGINT primary key,
     active   boolean      not null default true,
     username VARCHAR(255) not null,
     password VARCHAR(255) not null
 );
 
--- alter table if exists route
---     add constraint address_fk
---         foreign key (routesheet_id) references routesheet;
---
--- alter table if exists routesheet
---     add constraint message_user_fk
---         foreign key (user_id) references usr;
---
--- alter table if exists user_role
---     add constraint message_role_user_fk
---         foreign key (user_id) references usr
+alter table if exists route
+    add constraint address_fk
+        foreign key (route_sheet_id) references route_sheet;
+
+alter table if exists route_sheet
+    add constraint message_user_fk
+        foreign key (usr_id) references usr;
+
+alter table if exists user_role
+    add constraint message_role_user_fk
+        foreign key (usr_id) references usr;

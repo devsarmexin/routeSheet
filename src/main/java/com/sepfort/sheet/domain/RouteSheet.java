@@ -45,7 +45,7 @@ public class RouteSheet {
     private Long distance;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "usr_id")
     private User author;
 
     @OneToMany(cascade = CascadeType.ALL)
