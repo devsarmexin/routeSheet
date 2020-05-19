@@ -11,18 +11,18 @@ public class Route {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @NonNull
-    private String departure_point;
+    private String departurePoint;
     @NonNull
-    private String destination_point;
+    private String destinationPoint;
     @NonNull
     private Long distance;
 
     public Route() {
     }
 
-    public Route(String departure_point, String destination, Long distance) {
-        this.departure_point = departure_point;
-        this.destination_point = destination;
+    public Route(String departurePoint, String destinationPoint, Long distance) {
+        this.departurePoint = departurePoint;
+        this.destinationPoint = destinationPoint;
         this.distance = distance;
     }
 
@@ -35,19 +35,19 @@ public class Route {
     }
 
     public String getDeparture_point() {
-        return departure_point;
+        return departurePoint;
     }
 
     public void setDeparture_point(String departure_point) {
-        this.departure_point = departure_point;
+        this.departurePoint = departure_point;
     }
 
     public String getDestination() {
-        return destination_point;
+        return destinationPoint;
     }
 
     public void setDestination(String destination) {
-        this.destination_point = destination;
+        this.destinationPoint = destination;
     }
 
     public Long getDistance() {
