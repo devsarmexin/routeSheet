@@ -23,12 +23,12 @@ create table route_sheet
     mileage_finish   BIGINT not null,
     waybill_number   BIGINT not null,
     saving           FLOAT  not null,
-    usr_id           BIGINT
+    user_id           BIGINT
 );
 
 create table user_role
 (
-    usr_id BIGINT       not null,
+    user_id BIGINT       not null,
     roles   VARCHAR(255) not null
 );
 
@@ -46,8 +46,8 @@ alter table if exists route
 
 alter table if exists route_sheet
     add constraint message_user_fk
-        foreign key (usr_id) references usr;
+        foreign key (user_id) references usr;
 
 alter table if exists user_role
     add constraint message_role_user_fk
-        foreign key (usr_id) references usr;
+        foreign key (user_id) references usr;
