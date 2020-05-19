@@ -1,5 +1,6 @@
 package com.sepfort.sheet.service.impl;
 
+import com.sepfort.sheet.domain.RouteSheet;
 import com.sepfort.sheet.repo.RouteSheetRepo;
 import com.sepfort.sheet.service.CreateWaybill;
 import org.apache.poi.ss.usermodel.Cell;
@@ -34,8 +35,8 @@ public class CreateWaybillImpl implements CreateWaybill {
 
     @Override // Формирование маршрутного листа в Excel
     public String createWaybill(String data, Model model) throws IOException {
-        var localDate = LocalDate.parse(data);
-        var routeSheet = routeSheetRepo.findByTripDate(localDate);
+        LocalDate localDate = LocalDate.parse(data);
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(localDate);
         if (routeSheet == null) {
             model.addAttribute("errorMessage", "На " + data + " маршрутный лист отсутствует");
             return "menu";

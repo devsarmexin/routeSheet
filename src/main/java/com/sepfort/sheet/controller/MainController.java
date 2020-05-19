@@ -31,17 +31,17 @@ public class MainController {
     @PostMapping("/primary_input") //Первичное заполнение первого путевого листа
     public String primaryInput(
             @RequestParam String dateToString,
-            @RequestParam Long number,
+            @RequestParam Short waybillNumber,
             @RequestParam Double fuelStart,
             @RequestParam Double fuelFinish,
-            @RequestParam Long mileageStart,
-            @RequestParam Long mileageFinish,
-            @RequestParam Long fueling,
+            @RequestParam Integer mileageStart,
+            @RequestParam Integer mileageFinish,
+            @RequestParam Short fueling,
             @RequestParam Double consumptionNorm,
             @RequestParam Double consumptionFact,
             Model model
     ) {
-        return routeSheetService.addingFirstRouteSheetToDatabase(dateToString, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
+        return routeSheetService.addingFirstRouteSheetToDatabase(dateToString, waybillNumber, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
     }
 
     @GetMapping("/routeSheet") // Вывод приветственной информации
@@ -63,7 +63,7 @@ public class MainController {
     }
     
     @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа
-    public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
+    public String goToAddRoute(@RequestParam Short fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
         return routeSheetService.addRouteSheetToDatabase(fuel, data, isEdit, model);
     }
 
@@ -74,7 +74,7 @@ public class MainController {
 
     @GetMapping("/editingRoutes") // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
     public String edit2(
-            @RequestParam Long distance,
+            @RequestParam Short distance,
             @RequestParam String address2,
             @RequestParam String flag,
             Model model

@@ -9,10 +9,10 @@ import java.util.List;
 public class RouteSheet {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private Integer id;
 
     @Column(name = "waybill_number")
-    private Long waybillNumber;
+    private Short waybillNumber;
 
     @Column(name = "trip_date")
     private LocalDate tripDate;
@@ -24,13 +24,13 @@ public class RouteSheet {
     private Double fuelFinish;
 
     @Column(name = "mileage_start")
-    private Long mileageStart;
+    private Integer mileageStart;
 
     @Column(name = "mileage_finish")
-    private Long mileageFinish;
+    private Integer mileageFinish;
 
     @Column(name = "fueling")
-    private Long fueling;
+    private Short fueling;
 
     @Column(name = "consumption_norm")
     private Double consumptionNorm;
@@ -42,7 +42,7 @@ public class RouteSheet {
     private Double saving;
 
     @Column(name = "distance")
-    private Long distance;
+    private Integer distance;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
@@ -55,14 +55,14 @@ public class RouteSheet {
     public RouteSheet() {
     }
 
-    public RouteSheet(LocalDate tripDate, Long fueling, Long distance, List<Route> routes) {
+    public RouteSheet(LocalDate tripDate, Short fueling, Integer distance, List<Route> routes) {
         this.tripDate = tripDate;
         this.fueling = fueling;
         this.distance = distance;
         this.routes = routes;
     }
 
-    public RouteSheet(LocalDate tripDate, Long waybillNumber, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving, Long distance, List<Route> routes
+    public RouteSheet(LocalDate tripDate, Short waybillNumber, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Double saving, Integer distance, List<Route> routes
     ) {
         this.tripDate = tripDate;
         this.waybillNumber = waybillNumber;
@@ -78,7 +78,7 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public RouteSheet(LocalDate tripDate, Long waybillNumber, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
+    public RouteSheet(LocalDate tripDate, Short waybillNumber, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
         this.tripDate = tripDate;
         this.waybillNumber = waybillNumber;
         this.fuelStart = fuelStart;
@@ -91,11 +91,11 @@ public class RouteSheet {
         this.saving = saving;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -123,27 +123,27 @@ public class RouteSheet {
         this.fuelFinish = fuelFinish;
     }
 
-    public Long getMileageStart() {
+    public Integer getMileageStart() {
         return mileageStart;
     }
 
-    public void setMileageStart(Long mileageStart) {
+    public void setMileageStart(Integer mileageStart) {
         this.mileageStart = mileageStart;
     }
 
-    public Long getMileageFinish() {
+    public Integer getMileageFinish() {
         return mileageFinish;
     }
 
-    public void setMileageFinish(Long mileageFinish) {
+    public void setMileageFinish(Integer mileageFinish) {
         this.mileageFinish = mileageFinish;
     }
 
-    public Long getFueling() {
+    public Short getFueling() {
         return fueling;
     }
 
-    public void setFueling(Long fueling) {
+    public void setFueling(Short fueling) {
         this.fueling = fueling;
     }
 
@@ -171,11 +171,11 @@ public class RouteSheet {
         this.saving = saving;
     }
 
-    public Long getDistance() {
+    public Integer getDistance() {
         return distance;
     }
 
-    public void setDistance(Long distance) {
+    public void setDistance(Integer distance) {
         this.distance = distance;
     }
 
@@ -195,11 +195,11 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public Long getWaybillNumber() {
+    public Short getWaybillNumber() {
         return waybillNumber;
     }
 
-    public void setWaybillNumber(Long number) {
-        this.waybillNumber = number;
+    public void setWaybillNumber(Short waybillNumber) {
+        this.waybillNumber = waybillNumber;
     }
 }

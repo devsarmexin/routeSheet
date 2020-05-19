@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface RouteSheetRepo extends CrudRepository<RouteSheet, Long> {
+public interface RouteSheetRepo extends CrudRepository<RouteSheet, Integer> {
     Optional<RouteSheet> findById(Long aLong);
 
     @Query(value = "SELECT MAX (id) AS id FROM RouteSheet")
@@ -17,7 +17,7 @@ public interface RouteSheetRepo extends CrudRepository<RouteSheet, Long> {
     RouteSheet findByTripDate(LocalDate tripDate);
 
     @Query(value = "SELECT MAX (tripDate) AS tripDate from RouteSheet")
-    LocalDate findDataMax();
+    LocalDate findMaxDate();
 
     List<RouteSheet> findAllByTripDateIsNotNull();
 }

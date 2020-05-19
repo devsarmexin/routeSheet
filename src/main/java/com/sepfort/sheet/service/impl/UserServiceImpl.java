@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     public String addUser(User user, Model model) {
         User userFromDB = userRepo.findByUsername(user.getUsername());
         if (userFromDB != null) {
-            model.addAttribute("message", "User is exists!");
+            model.addAttribute("message", "User already exists!");
             return "registration";
         }
         user.setActive(true);

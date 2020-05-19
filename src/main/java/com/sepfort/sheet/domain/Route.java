@@ -9,28 +9,28 @@ import javax.persistence.*;
 public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private Integer id;
     @NonNull
     private String departurePoint;
     @NonNull
     private String destinationPoint;
     @NonNull
-    private Long distance;
+    private Short distance;
 
     public Route() {
     }
 
-    public Route(String departurePoint, String destinationPoint, Long distance) {
+    public Route(String departurePoint, String destinationPoint, Short distance) {
         this.departurePoint = departurePoint;
         this.destinationPoint = destinationPoint;
         this.distance = distance;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -50,11 +50,11 @@ public class Route {
         this.destinationPoint = destination;
     }
 
-    public Long getDistance() {
+    public Short getDistance() {
         return distance;
     }
 
-    public void setDistance(Long distance) {
+    public void setDistance(Short distance) {
         this.distance = distance;
     }
 }

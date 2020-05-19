@@ -19,7 +19,7 @@ import java.util.List;
 public class RouteSheetServiceImpl implements RouteSheetService {
     private boolean pointFlag = true;
     private String newPoint;
-    private Long sumDistance = 0L;
+    private Integer sumDistance = 0;
     private List<Route> routeList = new ArrayList<>();
     private LocalDate localDateFromAddRoutes; // дата первого ПЛ
 
@@ -29,32 +29,34 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     private PasswordEncoder passwordEncoder;
 
     @Override  // Добавление в БД первого ПЛ
-    public String addingFirstRouteSheetToDatabase(String dateToString, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Model model) {
+    public String addingFirstRouteSheetToDatabase(String dateToString, Short number, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Model model) {
         localDateFromAddRoutes = LocalDate.parse(dateToString);
-        var saving = consumptionFact - consumptionNorm;
+        Double saving = consumptionFact - consumptionNorm;
         routeSheetRepo.save(new RouteSheet(localDateFromAddRoutes, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, saving));
-        var lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
+        RouteSheet lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
         model.addAttribute("lastRouteSheet", lastRouteSheet);
         model.addAttribute("errorMessage", "Первый маршрутный лист заполен и помещён в базу данных.");
         return "menu";
     }
 
     @Override  // Добавление в БД нового ПЛ
-    public String addRouteSheetToDatabase(Long fuel, String data, String isEdit, Model model) {
+    public String addRouteSheetToDatabase(Short fuel, String data, String isEdit, Model model) {
         if (routeSheetRepo.findByTripDate(LocalDate.parse(data)) != null && isEdit.equals("no")) {
             model.addAttribute("errorMessage", "На " + data + " есть путевой лист");
             return "menu";
         }
-        Long number;
+        Short number = 0;
         if (isEdit.equals("yes")) {
-            number = routeSheetRepo.findByTripDate(routeSheetRepo.findDataMax()).getWaybillNumber();
-            var id = routeSheetRepo.findByTripDate(LocalDate.parse(data)).getId();
+            number = routeSheetRepo.findByTripDate(routeSheetRepo.findMaxDate()).getWaybillNumber();
+            Integer id = routeSheetRepo.findByTripDate(LocalDate.parse(data)).getId();
             routeSheetRepo.deleteById(id);
         } else {
-            number = routeSheetRepo.findByTripDate(routeSheetRepo.findDataMax()).getWaybillNumber() + 1L;
+            number = (routeSheetRepo.findByTripDate(routeSheetRepo.findMaxDate())).getWaybillNumber();
+            number++;
         }
-        var lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        var routeSheet = addNewRouteSheet(LocalDate.parse(data), number, lastRouteSheet, fuel, 0L, null);
+        RouteSheet lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
+        Integer distance = 0;
+        RouteSheet routeSheet = addNewRouteSheet(LocalDate.parse(data), number, lastRouteSheet, fuel, distance, null);
         routeSheetRepo.save(routeSheet);
         model.addAttribute("errorMessage", "Новый маршрутный лист на " + data + " создан.");
         return "menu";
@@ -84,8 +86,8 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             model.addAttribute("errorMessage", "База данных пуста");
             return "menu";
         }
-        var routeSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        var lastNumber = routeSheet.getTripDate();
+        RouteSheet routeSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
+        LocalDate lastNumber = routeSheet.getTripDate();
         model.addAttribute("lastNumber", lastNumber);
 
         List<RouteSheet> routeSheetList = routeSheetRepo.findAllByTripDateIsNotNull();
@@ -95,8 +97,8 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override // Вывод маршрутного листа на экран по дате
     public String output(String date, Model model) {
-        var data = LocalDate.parse(date);
-        var routeSheet = routeSheetRepo.findByTripDate(data);
+        LocalDate data = LocalDate.parse(date);
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(data);
         if (routeSheet == null) {
             model.addAttribute("errorMessage", "На " + date + " маршрутного листа нет");
             return "menu";
@@ -107,7 +109,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     }
 
     @Override  // Добавление маршрутов
-    public String editingRoutesToRoutSheet(Long distance, String address2, String flag, Model model) {
+    public String editingRoutesToRoutSheet(Short distance, String address2, String flag, Model model) {
         String firstPoint;
         if (pointFlag) {
             firstPoint = "Маршала Говорова";
@@ -116,20 +118,20 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             firstPoint = newPoint;
         }
         newPoint = address2;
-        var route = new Route(firstPoint, address2, distance);
+        Route route = new Route(firstPoint, address2, distance);
         sumDistance += distance;
         routeList.add(route);
         model.addAttribute("firstPoint", newPoint);
         if (flag.equals("no")) {
-            localDateFromAddRoutes = routeSheetRepo.findDataMax();
-            var routeSheet = routeSheetRepo.findByTripDate(localDateFromAddRoutes);
-            var routeSheetForSave = addNewRouteSheet(routeSheet.getTripDate(), routeSheet.getWaybillNumber(), routeSheet, routeSheet.getFueling(), sumDistance, routeList);
+            localDateFromAddRoutes = routeSheetRepo.findMaxDate();
+            RouteSheet routeSheet = routeSheetRepo.findByTripDate(localDateFromAddRoutes);
+            RouteSheet routeSheetForSave = addNewRouteSheet(routeSheet.getTripDate(), routeSheet.getWaybillNumber(), routeSheet, routeSheet.getFueling(), sumDistance, routeList);
             routeSheetRepo.deleteById(routeSheet.getId());
             routeSheetRepo.save(routeSheetForSave);
 
             routeList = new ArrayList<>();
             localDateFromAddRoutes = null;
-            sumDistance = 0L;
+            sumDistance = 0;
             pointFlag = true;
             routeList = new ArrayList<>();
             model.addAttribute("errorMessage", "Закончили ввод маршрутов");
@@ -139,12 +141,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     }
 
     // ПОДСЧЕТ значений полей на новый путевой лист
-    public RouteSheet addNewRouteSheet(LocalDate date, Long number, RouteSheet lastRouteSheet, Long fueling, Long distance, List<Route> addressesList) {
+    public RouteSheet addNewRouteSheet(LocalDate date, Short waybillNumber, RouteSheet lastRouteSheet, Short fueling, Integer distance, List<Route> addressesList) {
 
         Double consumptionNorm = Precision.round(12D * distance / 100D, 2);
         // Переделать, что бы проьежуток выбирать от даты до даты
-        var winterStartDay = LocalDate.parse("2019-11-01");
-        var winterEndDay = LocalDate.parse("2020-06-30");
+        LocalDate winterStartDay = LocalDate.parse("2019-11-01");
+        LocalDate winterEndDay = LocalDate.parse("2020-06-30");
         if (date.isAfter(winterStartDay) && date.isBefore(winterEndDay)) {
             consumptionNorm = Precision.round(consumptionNorm * 1.1, 2);
         }
@@ -159,12 +161,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 5));
         }
 
-        var fuelStart = lastRouteSheet.getFuelFinish();
-        var fuelFinish = Precision.round(fuelStart + fueling - consumptionFact, 2);
-        var mileageStart = lastRouteSheet.getMileageFinish();
-        var mileageFinish = mileageStart + distance;
-        var saving = Precision.round(consumptionNorm - consumptionFact, 3);
+        Double fuelStart = lastRouteSheet.getFuelFinish();
+        Double fuelFinish = Precision.round(fuelStart + fueling - consumptionFact, 2);
+        Integer mileageStart = lastRouteSheet.getMileageFinish();
+        Integer mileageFinish = mileageStart + distance;
+        Double saving = Precision.round(consumptionNorm - consumptionFact, 3);
 
-        return new RouteSheet(date, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, saving, distance, addressesList);
+        return new RouteSheet(date, waybillNumber, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, saving, distance, addressesList);
     }
 }

@@ -2,39 +2,39 @@ create sequence hibernate_sequence start 1 increment 1;
 
 create table route
 (
-    id                BIGINT primary key,
+    id                INTEGER primary key,
     departure_point   VARCHAR(2048) not null,
     destination_point VARCHAR(2048) not null,
-    distance          BIGINT        not null,
-    route_sheet_id    BIGINT
+    distance          SMALLINT      not null,
+    route_sheet_id    INTEGER
 );
 
 create table route_sheet
 (
-    id               BIGINT primary key,
-    consumption_fact FLOAT  not null,
-    consumption_norm FLOAT  not null,
-    trip_date        date   not null,
-    distance         BIGINT,
-    fuel_start       FLOAT  not null,
-    fuel_finish      FLOAT  not null,
-    fueling          BIGINT not null,
-    mileage_start    BIGINT not null,
-    mileage_finish   BIGINT not null,
-    waybill_number   BIGINT not null,
-    saving           FLOAT  not null,
-    user_id           BIGINT
+    id               INTEGER primary key,
+    consumption_fact FLOAT    not null,
+    consumption_norm FLOAT    not null,
+    trip_date        date     not null,
+    distance         INTEGER,
+    fuel_start       FLOAT    not null,
+    fuel_finish      FLOAT    not null,
+    fueling          SMALLINT not null,
+    mileage_start    INTEGER  not null,
+    mileage_finish   INTEGER  not null,
+    waybill_number   SMALLINT not null,
+    saving           FLOAT    not null,
+    user_id          INTEGER
 );
 
 create table user_role
 (
-    user_id BIGINT       not null,
+    user_id INTEGER      not null,
     roles   VARCHAR(255) not null
 );
 
 create table usr
 (
-    id       BIGINT primary key,
+    id       INTEGER primary key,
     active   boolean      not null default true,
     username VARCHAR(255) not null,
     password VARCHAR(255) not null
