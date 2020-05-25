@@ -12,17 +12,17 @@ create table route
 create table route_sheet
 (
     id               INTEGER primary key,
-    consumption_fact FLOAT    not null,
-    consumption_norm FLOAT    not null,
+    consumption_fact FLOAT,
+    consumption_norm FLOAT,
     trip_date        date     not null,
     distance         INTEGER,
     fuel_start       FLOAT    not null,
-    fuel_finish      FLOAT    not null,
+    fuel_finish      FLOAT,
     fueling          SMALLINT not null,
     mileage_start    INTEGER  not null,
-    mileage_finish   INTEGER  not null,
-    waybill_number   SMALLINT not null,
-    saving           FLOAT    not null,
+    mileage_finish   INTEGER,
+    waybill_number   INTEGER  not null,
+    saving           FLOAT,
     user_id          INTEGER
 );
 

@@ -26,6 +26,8 @@ public class Route {
         this.distance = distance;
     }
 
+    //<editor-fold defaultstate="collapsed" desc="getters and setters">
+
     public Integer getId() {
         return id;
     }
@@ -57,4 +59,6 @@ public class Route {
     public void setDistance(Short distance) {
         this.distance = distance;
     }
+
+    //</editor-fold>
 }

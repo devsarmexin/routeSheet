@@ -1,17 +1,18 @@
 package com.sepfort.sheet.controller;
 
-import com.sepfort.sheet.repo.RouteSheetRepo;
+import com.sepfort.sheet.domain.RouteSheet;
+import com.sepfort.sheet.dto.RouteSheetDto;
+import com.sepfort.sheet.mapper.RouteSheetMapper;
 import com.sepfort.sheet.service.RouteSheetService;
 import com.sepfort.sheet.service.impl.CreateWaybillImpl;
-import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class MainController {
@@ -20,56 +21,62 @@ public class MainController {
     @Autowired
     private CreateWaybillImpl createWaybillImpl;
     @Autowired
-    private RouteSheetRepo routeSheetRepo;
+    private RouteSheetMapper routeSheetMapper;
 
-    @GetMapping  // Вход
+    @GetMapping  // Вход //
     public String menuEntry(Model model) {
         model.addAttribute("errorMessage", "");
         return "menu";
     }
 
-    @PostMapping("/primary_input") //Первичное заполнение первого путевого листа
-    public String primaryInput(
-            @RequestParam String dateToString,
-            @RequestParam Short waybillNumber,
-            @RequestParam Double fuelStart,
-            @RequestParam Double fuelFinish,
-            @RequestParam Integer mileageStart,
-            @RequestParam Integer mileageFinish,
-            @RequestParam Short fueling,
-            @RequestParam Double consumptionNorm,
-            @RequestParam Double consumptionFact,
-            Model model
-    ) {
-        return routeSheetService.addingFirstRouteSheetToDatabase(dateToString, waybillNumber, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
+    @PostMapping("/primary_input") //Первичное заполнение первого путевого листа //
+    public String primaryInput(@ModelAttribute RouteSheetDto routeSheetDto, Model model) {
+        Map<String, String> answerToMenu = routeSheetService.addingFirstRouteSheetToDatabase(routeSheetDto);
+        model.addAttribute("errorMessage", answerToMenu.get("errorMessage"));
+        return "menu";
     }
 
-    @GetMapping("/routeSheet") // Вывод приветственной информации
+    @GetMapping("/routeSheet") // Вывод приветственной информации //
     public String intro() {
         return "routeSheet";
     }
 
-    @GetMapping("/information")  // Вывод информации
+    @GetMapping("/information")  // Вывод информации  //
     public String generalInformation(Model model) {
-        return routeSheetService.generalInformation(model);
+        List<RouteSheet> routeSheetList  = routeSheetService.generalInformation();
+        if (routeSheetList == null) {
+            model.addAttribute("errorMessage", "База данных пуста");
+            return "menu";
+        }
+        model.addAttribute("routeSheetList", routeSheetList);
+        return "information";
     }
 
     @GetMapping("/filling")
-    public String fillingOutTheWaybill() {
-        if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
+    public String fillingOutTheWaybill(Model model) {
+        if (routeSheetService.queryDatabaseIsEmpty()) { // Запрос на пустоту БД RouteSheet
+            model.addAttribute("hello", "user");
             return "first";
         }
         return "fueling"; // Запрос данных (дата, запрвка) для добавления ПЛ
     }
-    
-    @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа
-    public String goToAddRoute(@RequestParam Short fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
-        return routeSheetService.addRouteSheetToDatabase(fuel, data, isEdit, model);
+
+    @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа  //
+    public String goToAddRoute(@ModelAttribute RouteSheetDto routeSheetDto, Model model) {
+        Map<String, String> answerToMenu = routeSheetService.addRouteSheetToDatabase(routeSheetDto);
+        model.addAttribute("errorMessage", answerToMenu.get("errorMessage"));
+        return "menu";
     }
 
     @GetMapping("/editRoute") // Получаем дату (из date.ftlh) и идём заполнять маршруты
-    public String edit(@RequestParam String date, @RequestParam(defaultValue = "no") String isEdit, Model model) {
-        return routeSheetService.addingRoutesToRoutSheet(date, isEdit, model);
+    public  String edit(@RequestParam String date, Model model) {
+        boolean thereAreRoutes = routeSheetService.thereAreRoutes(date);
+        if (thereAreRoutes) {
+            model.addAttribute("errorMessage", "На " + date + " заполнены маршруты");
+            return "menu";
+        }
+        model.addAttribute("firstPoint", "Маршала Говорова");
+        return "addingRoutes";
     }
 
     @GetMapping("/editingRoutes") // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
@@ -79,7 +86,14 @@ public class MainController {
             @RequestParam String flag,
             Model model
     ) {
-        return routeSheetService.editingRoutesToRoutSheet(distance, address2, flag, model);
+        if (flag.equals("yes")) {
+            String firstPoint = routeSheetService.editingRoutesToRoutSheet2(distance, address2);
+            model.addAttribute("firstPoint", firstPoint);
+            return "addingRoutes";
+        }
+        routeSheetService.editingRoutesToRoutSheetEnd(distance, address2);
+        model.addAttribute("errorMessage", "Маршруты добавллены");
+        return "menu";
     }
 
     @GetMapping("/addingRoutes") // Запрос даты для добавления маршрутов (далее /edit)
@@ -88,7 +102,7 @@ public class MainController {
     }
 
     @GetMapping("/viewRouteSheetByDate") // Запрос даты для просмотра ПЛ
-    public String date2() {
+    public String dateForViewRouteSheetByDate() {
         return "dateForViewRouteSheetByDate";
     }
 

@@ -23,13 +23,13 @@
             <td>${routeSheet.tripDate}</td>
             <td>${routeSheet.getFuelStart()}</td>
             <td>${routeSheet.getMileageStart()}</td>
-            <td>${routeSheet.getMileageFinish()}</td>
+            <td><#if routeSheet.getMileageFinish()??>${routeSheet.getMileageFinish()}<else></else></#if></td>
             <td><#if routeSheet.getDistance()??>${routeSheet.getDistance()}<else></else></#if></td>
             <td>${routeSheet.getFueling()}</td>
-            <td>${routeSheet.getConsumptionNorm()}</td>
-            <td>${routeSheet.getConsumptionFact()}</td>
-            <td>${routeSheet.getSaving()}</td>
-            <td>${routeSheet.getFuelFinish()}</td>
+            <td><#if routeSheet.getConsumptionNorm()??>${routeSheet.getConsumptionNorm()}<else></else></#if></td>
+            <td><#if routeSheet.getConsumptionFact()??>${routeSheet.getConsumptionFact()}<else></else></#if></td>
+            <td><#if routeSheet.getSaving()??>${routeSheet.getSaving()}<else></else></#if></td>
+            <td><#if routeSheet.getFuelFinish()??>${routeSheet.getFuelFinish()}<else></else></#if></td>
         </tr>
     </table>
     <br>

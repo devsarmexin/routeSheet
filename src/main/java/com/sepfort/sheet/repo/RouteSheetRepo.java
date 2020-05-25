@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RouteSheetRepo extends CrudRepository<RouteSheet, Integer> {
-    Optional<RouteSheet> findById(Long aLong);
+    Optional<RouteSheet> findById(Integer integer);
 
     @Query(value = "SELECT MAX (id) AS id FROM RouteSheet")
-    Long findMaxId();
+    Integer findMaxId();
 
     RouteSheet findByTripDate(LocalDate tripDate);
 

@@ -27,16 +27,15 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     }
 
     @Override
-    public String addUser(User user, Model model) {
+    public boolean addUser(User user, Model model) {
         User userFromDB = userRepo.findByUsername(user.getUsername());
         if (userFromDB != null) {
-            model.addAttribute("message", "User already exists!");
-            return "registration";
+            return false;
         }
         user.setActive(true);
         user.setRoles(Collections.singleton(Role.USER));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepo.save(user);
-        return "redirect:/login";
+        return true;
     }
 }

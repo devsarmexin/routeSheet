@@ -22,6 +22,8 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
+//<editor-fold defaultstate="collapsed" desc="getters and setters">
+
     public Integer getId() {
         return id;
     }
@@ -87,4 +89,5 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
+    //</editor-fold>
 }

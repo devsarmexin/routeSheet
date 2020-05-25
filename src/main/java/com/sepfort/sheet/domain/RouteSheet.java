@@ -12,7 +12,7 @@ public class RouteSheet {
     private Integer id;
 
     @Column(name = "waybill_number")
-    private Short waybillNumber;
+    private Integer waybillNumber;
 
     @Column(name = "trip_date")
     private LocalDate tripDate;
@@ -55,6 +55,15 @@ public class RouteSheet {
     public RouteSheet() {
     }
 
+    public RouteSheet(LocalDate tripDate, Integer waybillNumber, Double fuelStart, Integer mileageStart, Integer mileageFinish, Short fueling) {
+        this.tripDate = tripDate;
+        this.waybillNumber = waybillNumber;
+        this.fuelStart = fuelStart;
+        this.mileageStart = mileageStart;
+        this.mileageFinish = mileageFinish;
+        this.fueling = fueling;
+    }
+
     public RouteSheet(LocalDate tripDate, Short fueling, Integer distance, List<Route> routes) {
         this.tripDate = tripDate;
         this.fueling = fueling;
@@ -62,7 +71,7 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public RouteSheet(LocalDate tripDate, Short waybillNumber, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Double saving, Integer distance, List<Route> routes
+    public RouteSheet(LocalDate tripDate, Integer waybillNumber, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Double saving, Integer distance, List<Route> routes
     ) {
         this.tripDate = tripDate;
         this.waybillNumber = waybillNumber;
@@ -78,7 +87,7 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public RouteSheet(LocalDate tripDate, Short waybillNumber, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
+    public RouteSheet(LocalDate tripDate, Integer waybillNumber, Double fuelStart, Double fuelFinish, Integer mileageStart, Integer mileageFinish, Short fueling, Double consumptionNorm, Double consumptionFact, Double saving) {
         this.tripDate = tripDate;
         this.waybillNumber = waybillNumber;
         this.fuelStart = fuelStart;
@@ -90,6 +99,8 @@ public class RouteSheet {
         this.consumptionFact = consumptionFact;
         this.saving = saving;
     }
+
+    //<editor-fold defaultstate="collapsed" desc="getters and setters">
 
     public Integer getId() {
         return id;
@@ -195,11 +206,13 @@ public class RouteSheet {
         this.routes = routes;
     }
 
-    public Short getWaybillNumber() {
+    public Integer getWaybillNumber() {
         return waybillNumber;
     }
 
-    public void setWaybillNumber(Short waybillNumber) {
+    public void setWaybillNumber(Integer waybillNumber) {
         this.waybillNumber = waybillNumber;
     }
+
+    //</editor-fold>
 }
