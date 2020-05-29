@@ -16,12 +16,16 @@ import java.util.Map;
 
 @Controller
 public class MainController {
-    @Autowired
     private RouteSheetService routeSheetService;
-    @Autowired
     private CreateWaybillImpl createWaybillImpl;
-    @Autowired
     private RouteSheetMapper routeSheetMapper;
+
+    @Autowired
+    public MainController(RouteSheetService routeSheetService, CreateWaybillImpl createWaybill, RouteSheetMapper routeSheetMapper) {
+        this.routeSheetService = routeSheetService;
+        this.createWaybillImpl = createWaybill;
+        this.routeSheetMapper = routeSheetMapper;
+    }
 
     @GetMapping  // Вход //
     public String menuEntry(Model model) {
@@ -43,7 +47,7 @@ public class MainController {
 
     @GetMapping("/information")  // Вывод информации  //
     public String generalInformation(Model model) {
-        List<RouteSheet> routeSheetList  = routeSheetService.generalInformation();
+        List<RouteSheet> routeSheetList = routeSheetService.generalInformation();
         if (routeSheetList == null) {
             model.addAttribute("errorMessage", "База данных пуста");
             return "menu";
@@ -69,7 +73,7 @@ public class MainController {
     }
 
     @GetMapping("/editRoute") // Получаем дату (из date.ftlh) и идём заполнять маршруты
-    public  String edit(@RequestParam String date, Model model) {
+    public String edit(@RequestParam String date, Model model) {
         boolean thereAreRoutes = routeSheetService.thereAreRoutes(date);
         if (thereAreRoutes) {
             model.addAttribute("errorMessage", "На " + date + " заполнены маршруты");

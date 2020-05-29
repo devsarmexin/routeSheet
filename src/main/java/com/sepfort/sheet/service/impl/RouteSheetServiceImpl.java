@@ -29,8 +29,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Autowired
     private RouteSheetRepo routeSheetRepo;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Override
     public Map<String, String> editingRoutesToRoutSheet(Short distance, String address2, String flag, Model model) {
@@ -69,20 +67,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes() == null;
     }
 
-//    @Override // Добавление и редактирование маршрутов
-//    public  void addingRoutesToRoutSheet(String date) {
-//        if (!routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes().isEmpty() && isEdit.equals("no")) {
-//            model.addAttribute("errorMessage", "Нельзя добавить маршруты, они уже заполнены.");
-//            return "menu";
-//        }
-//        if (isEdit.equals("yes")) {
-//            routeSheetRepo.findByTripDate(LocalDate.parse(date)).setRoutes(new ArrayList<>());
-//        }
-//        localDateFromAddRoutes = LocalDate.parse(date);
-//        model.addAttribute("firstPoint", "Маршала Говорова");
-//        return "redirect:/";
-//    }
-
     @Override  // Вывод информации
     public List<RouteSheet> generalInformation() {
         if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
@@ -110,42 +94,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     public boolean queryDatabaseIsEmpty() {
         return IterableUtils.size(routeSheetRepo.findAll()) == 0;
     }
-
-//    @Override  // Добавление маршрутов
-//    public  Map<String, String> editingRoutesToRoutSheet(Short distance, String address2, String flag, Model model) {
-//        String firstPoint;
-//        if (pointFlag) {
-//            firstPoint = "Маршала Говорова";
-//            pointFlag = false;
-//        } else {
-//            firstPoint = newPoint;
-//        }
-//        newPoint = address2;
-//        Route route = new Route(firstPoint, address2, distance);
-//        sumDistance += distance;
-//        routeList.add(route);
-//        model.addAttribute("firstPoint", newPoint);
-//        if (flag.equals("no")) {
-//            localDateFromAddRoutes = routeSheetRepo.findMaxDate();
-//            RouteSheet routeSheet = routeSheetRepo.findByTripDate(localDateFromAddRoutes);
-//        //    RouteSheet routeSheetForSave = calculationNewWaybillWithRoutes(routeSheet.getTripDate(), routeSheet.getWaybillNumber(), routeSheet, routeSheet.getFueling(), sumDistance, routeList);
-//                   RouteSheet routeSheetForSave = calculationNewWaybillWithRoutes();
-//            routeSheetRepo.deleteById(routeSheet.getId());
-//            routeSheetRepo.save(routeSheetForSave);
-//
-//            routeList = new ArrayList<>();
-//            localDateFromAddRoutes = null;
-//            sumDistance = 0;
-//            pointFlag = true;
-//            routeList = new ArrayList<>();
-//            model.addAttribute("errorMessage", "Закончили ввод маршрутов");
-//            Map<String, String> answerToMenu = new HashMap<>();
-//            answerToMenu.put("errorMessage", "Закончили ввод маршрутов");
-//            return answerToMenu;
-//        }
-//    //    return "addingRoutes";
-//        return null;
-//    }
 
     @Override
     public String editingRoutesToRoutSheet2(Short distance, String address2) {
@@ -202,24 +150,3 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     }
 
 }
-
-
-//        Double saving = Precision.round(consumptionNorm - consumptionFact, 3);
-
-//     Double consumptionNorm = Precision.round(12D * routeSheetDto.getdistance() / 100D, 2);
-// Переделать, что бы проьежуток выбирать от даты до даты
-//        LocalDate winterStartDay = LocalDate.parse("2019-11-01");
-//        LocalDate winterEndDay = LocalDate.parse("2020-06-30");
-//        if (date.isAfter(winterStartDay) && date.isBefore(winterEndDay)) {
-//            consumptionNorm = Precision.round(consumptionNorm * 1.1, 2);
-//        }
-//        Double consumptionFact = 0D;
-//        if (consumptionNorm < 10) {
-//            consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 3));
-//        }
-//        if (consumptionNorm >= 10 && consumptionNorm < 100) {
-//            consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 4));
-//        }
-//        if (consumptionNorm >= 100) {
-//            consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 5));
-//        }
