@@ -20,4 +20,7 @@ public interface RouteSheetRepo extends CrudRepository<RouteSheet, Integer> {
     LocalDate findMaxDate();
 
     List<RouteSheet> findAllByTripDateIsNotNull();
+
+    RouteSheet findRouteSheetByWaybillNumber(Integer waybillNumber);
+
 }

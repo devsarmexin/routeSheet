@@ -16,7 +16,7 @@ create table route_sheet
     consumption_norm FLOAT,
     trip_date        date     not null,
     distance         INTEGER,
-    fuel_start       FLOAT    not null,
+    fuel_start       FLOAT,
     fuel_finish      FLOAT,
     fueling          SMALLINT not null,
     mileage_start    INTEGER  not null,

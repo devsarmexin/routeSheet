@@ -74,6 +74,11 @@ public class MainController {
 
     @GetMapping("/editRoute") // Получаем дату (из date.ftlh) и идём заполнять маршруты
     public String edit(@RequestParam String date, Model model) {
+        boolean isDatabaseIsEmpty = routeSheetService.queryDatabaseIsEmpty();
+        if (isDatabaseIsEmpty) {
+            model.addAttribute("errorMessage", " БД пуста");
+            return "menu";
+        }
         boolean thereAreRoutes = routeSheetService.thereAreRoutes(date);
         if (thereAreRoutes) {
             model.addAttribute("errorMessage", "На " + date + " заполнены маршруты");
@@ -128,6 +133,23 @@ public class MainController {
     @GetMapping("/waybillEditing")
     public String waybillEditing() {
         return "fuelingForEdit";
+    }
+
+    @GetMapping("/deleteDataBase")
+    public String deleteDataBase() {
+        return "deleteDataBase";
+    }
+
+    @GetMapping("/delete")
+    public String delete(@RequestParam String isDelete, Model model) {
+        if (isDelete.equals("yes")) {
+            routeSheetService.delete();
+            model.addAttribute("errorMessage", "Очистили БД");
+            return "menu";
+        }
+
+        model.addAttribute("errorMessage", "Не стали очищать БД");
+        return "menu";
     }
 }
 

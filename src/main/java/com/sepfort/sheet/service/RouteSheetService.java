@@ -25,4 +25,6 @@ public interface RouteSheetService {
     String editingRoutesToRoutSheet2(Short distance, String address2);
 
     void editingRoutesToRoutSheetEnd(Short distance, String address2);
+
+    void delete();
 }

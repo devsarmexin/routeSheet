@@ -3,6 +3,7 @@ package com.sepfort.sheet.service.impl;
 import com.sepfort.sheet.domain.Route;
 import com.sepfort.sheet.domain.RouteSheet;
 import com.sepfort.sheet.dto.RouteSheetDto;
+import com.sepfort.sheet.repo.RouteRepo;
 import com.sepfort.sheet.repo.RouteSheetRepo;
 import com.sepfort.sheet.service.RouteSheetService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -12,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +32,8 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Autowired
     private RouteSheetRepo routeSheetRepo;
+    @Autowired
+    private RouteRepo routeRepo;
 
     @Override
     public Map<String, String> editingRoutesToRoutSheet(Short distance, String address2, String flag, Model model) {
@@ -47,21 +52,23 @@ public class RouteSheetServiceImpl implements RouteSheetService {
 
     @Override  // Добавление в БД нового ПЛ
     public Map<String, String> addRouteSheetToDatabase(RouteSheetDto routeSheetDto) {
+        Map<String, String> answerToMenu = new HashMap<>();
         if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null) {
-            Map<String, String> answerToMenu = new HashMap<>();
             answerToMenu.put("errorMessage", "На " + routeSheetDto.getTripDate() + " есть путевой лист");
             return answerToMenu;
         }
-
         RouteSheet lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
+        if (lastRouteSheet.getMileageFinish() == null) {
+            answerToMenu.put("errorMessage", "Предыдущий маршрутный лист без пробега (нет маршрутов)");
+            return answerToMenu;
+        }
         RouteSheet routeSheet = calculationNewWaybill(routeSheetDto, lastRouteSheet);
         routeSheetRepo.save(routeSheet);
-        Map<String, String> answerToMenu = new HashMap<>();
         answerToMenu.put("errorMessage", "Новый маршрутный лист на " + routeSheetDto.getTripDate() + " создан.");
         return answerToMenu;
     }
 
-    @Override
+    @Override  // Есть ли МЛ на дату.
     public boolean thereAreRoutes(String date) {
         dateForAddRoutes = LocalDate.parse(date);
         return routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes() == null;
@@ -118,11 +125,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
             Route route = new Route("Маршала Говорова", address2, distance);
             sumDistance += distance;
             routeList.add(route);
+        } else {
+            Route route = new Route(newPoint, address2, distance);
+            sumDistance += distance;
+            routeList.add(route);
         }
-
-        Route route = new Route(newPoint, address2, distance);
-        sumDistance += distance;
-        routeList.add(route);
+        ///     routeSheet.setRoutes(routeList);
 
         RouteSheet routeSheetForSave = calculationNewWaybillWithRoutes(routeSheet);
         routeSheetRepo.save(routeSheetForSave);
@@ -133,7 +141,22 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         routeList = new ArrayList<>();
     }
 
+    @Override
+    public void delete() {
+        routeSheetRepo.deleteAll();
+        routeRepo.deleteAll();
+    }
+
     private RouteSheet calculationNewWaybillWithRoutes(RouteSheet routeSheet) {
+        RouteSheet lastRouteSheet = routeSheetRepo.findRouteSheetByWaybillNumber(routeSheet.getWaybillNumber() - 1);
+
+        routeSheet.setMileageFinish(routeSheet.getMileageStart() + sumDistance);
+        Double consumptionNorm = sumDistance * 12D / 100D;
+        routeSheet.setConsumptionNorm(consumptionNorm);
+        Double consumptionFact = (Double) Math.floor(consumptionNorm * 10) / 10.0;
+        routeSheet.setConsumptionFact(consumptionFact);
+        routeSheet.setSaving(consumptionNorm - consumptionFact);
+        routeSheet.setFuelFinish(routeSheet.getFuelStart() + routeSheet.getFueling() - consumptionFact);
         routeSheet.setRoutes(routeList);
         routeSheet.setDistance(sumDistance);
         return routeSheet;
@@ -148,5 +171,4 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         Integer mileageFinish = routeSheetDto.getMileageFinish();
         return new RouteSheet(LocalDate.parse(routeSheetDto.getTripDate()), WaybillNumber, fuelStart, mileageStart, mileageFinish, fueling);
     }
-
 }
