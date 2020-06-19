@@ -100,8 +100,6 @@ public class RouteSheet {
         this.saving = saving;
     }
 
-    //<editor-fold defaultstate="collapsed" desc="getters and setters">
-
     public Integer getId() {
         return id;
     }
@@ -210,6 +208,7 @@ public class RouteSheet {
         return waybillNumber;
     }
 
+    /** @noinspection checkstyle:HiddenField, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     public void setWaybillNumber(Integer waybillNumber) {
         this.waybillNumber = waybillNumber;
     }

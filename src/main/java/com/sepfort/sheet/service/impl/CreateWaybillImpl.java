@@ -33,6 +33,13 @@ public class CreateWaybillImpl implements CreateWaybill {
     @Autowired
     private RouteSheetRepo routeSheetRepo;
 
+    /** @noinspection checkstyle:MagicNumber, checkstyle:MagicNumber, checkstyle:MagicNumber, checkstyle:MagicNumber */
+    /**
+     * @param data
+     * @param model
+     * @return
+     * @throws IOException
+     */
     @Override // Формирование маршрутного листа в Excel
     public String createWaybill(String data, Model model) throws IOException {
         LocalDate localDate = LocalDate.parse(data);
@@ -63,13 +70,11 @@ public class CreateWaybillImpl implements CreateWaybill {
             Row row = xssfSheet.getRow(integerList.get(i));
             Cell cell = row.getCell(integerList.get(i + 1));
             cell.setCellValue(value.get(element++));
-            System.out.println(">>> element = " + element);
             i++;
         }
 
         int numberOfRoutes = routeSheet.getRoutes().size() * 3;
         for (int i = 0; i < numberOfRoutes; i = i + 3) {
-            System.out.println(">>> " + i);
             CellRangeAddress cellRangeAddress1 = new CellRangeAddress(58 + i, 60 + i, 0, 0);
             xssfSheet.addMergedRegion(cellRangeAddress1);
             CellRangeAddress cellRangeAddress2 = new CellRangeAddress(58 + i, 60 + i, 1, 1);
@@ -135,7 +140,6 @@ public class CreateWaybillImpl implements CreateWaybill {
         int index = 0;
         List<Integer> list = Arrays.asList(0, 2, 3, 7);
         for (int i = 0; i < numberOfRoutes; i = i + 3) {
-            System.out.println(">>> " + i);
             row6 = xssfSheet2.getRow(58 + i);
             Cell cell11 = row6.createCell(list.get(0));
             cell11.setCellValue(routeSheet.getWaybillNumber());
@@ -161,6 +165,7 @@ public class CreateWaybillImpl implements CreateWaybill {
         return "menu";
     }
 
+
     private String lineBreak(String text) {
         String result;
         String result2;
@@ -168,7 +173,6 @@ public class CreateWaybillImpl implements CreateWaybill {
         String result4;
         String l = String.valueOf(text);
         char[] chars = l.toCharArray();
-        System.out.println(">>> Длина строки = " + chars.length);
         if (chars.length < 15) {
             result3 = l;
         }
