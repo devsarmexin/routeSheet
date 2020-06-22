@@ -37,8 +37,12 @@ public class CreateWaybillImpl implements CreateWaybill {
      */
     private int lastLine;
 
-    @Autowired
     private RouteSheetRepo routeSheetRepo;
+
+    @Autowired
+    public CreateWaybillImpl(RouteSheetRepo routeSheetRepo) {
+        this.routeSheetRepo = routeSheetRepo;
+    }
 
     /**
      * Creating a route sheet in Excel.
@@ -173,31 +177,40 @@ public class CreateWaybillImpl implements CreateWaybill {
         return "menu";
     }
 
-
+    /**
+     * Formation of a line with hyphens.
+     * @param text Text
+     * @return
+     */
     private String lineBreak(String text) {
-        String result;
-        String result2;
-        String result3 = "";
-        String result4;
+        String resultLine1;
+        String resultLine2;
+        String resultLineEnd = "";
+        String resultLine3;
         String l = String.valueOf(text);
         char[] chars = l.toCharArray();
         if (chars.length < 15) {
-            result3 = l;
+            resultLineEnd = l;
         }
         if (chars.length >= 15 && chars.length < 30) {
-            result = new String(chars, 0, 15);
-            result2 = new String(chars, 15, chars.length - 15);
-            result3 = result + "\n" + result2;
+            resultLine1 = new String(chars, 0, 15);
+            resultLine2 = new String(chars, 15, chars.length - 15);
+            resultLineEnd = resultLine1 + "\n" + resultLine2;
         }
         if (chars.length >= 30) {
-            result = new String(chars, 0, 15);
-            result2 = new String(chars, 15, 15);
-            result4 = new String(chars, 30, chars.length - 30);
-            result3 = result + "\n" + result2 + "\n" + result4;
+            resultLine1 = new String(chars, 0, 15);
+            resultLine2 = new String(chars, 15, 15);
+            resultLine3 = new String(chars, 30, chars.length - 30);
+            resultLineEnd = resultLine1 + "\n" + resultLine2 + "\n" + resultLine3;
         }
-        return result3;
+        return resultLineEnd;
     }
 
+    /**
+     * Entering waybill data.
+     * @param data Date.
+     * @return List of waybill.
+     */
     private List<String> enteringWaybillData(String data) {
         List<String> stringList = new ArrayList<>();
         var localDate = LocalDate.parse(data);

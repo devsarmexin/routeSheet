@@ -51,10 +51,14 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      */
     private LocalDate dateForAddRoutes;
 
-    @Autowired
     private RouteSheetRepo routeSheetRepo;
-    @Autowired
     private RouteRepo routeRepo;
+
+    @Autowired
+    public RouteSheetServiceImpl(RouteSheetRepo routeSheetRepo, RouteRepo routeRepo) {
+        this.routeSheetRepo = routeSheetRepo;
+        this.routeRepo = routeRepo;
+    }
 
     /**
      * Adding the first waybill to the database.
