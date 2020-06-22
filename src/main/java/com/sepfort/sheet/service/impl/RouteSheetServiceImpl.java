@@ -63,7 +63,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     /**
      * Adding the first waybill to the database.
      *
-     * @param routeSheetDto
+     * @param routeSheetDto routeSheetDto.
      * @return Operation Result Information.
      */
     @Override
@@ -79,7 +79,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     /**
      * Adding a new waybill to the database.
      *
-     * @param routeSheetDto
+     * @param routeSheetDto routeSheetDto.
      * @param isEdit        Is the waybill editable.
      * @return Operation Result Information.
      */
@@ -157,13 +157,13 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     }
 
     /**
-     *
-     * @param distance
-     * @param address2
-     * @return
+     * We fill in all directions of the waybill.
+     * @param distance Distance between waypoints on a waybill.
+     * @param routeEndPointAddress route endpoint address.
+     * @return We return to the main menu if there are no more routes, otherwise we go to enter a new waybill route.
      */
     @Override
-    public String editingRoutesToRoutSheet(Short distance, String address2) {
+    public String editingRoutesToRoutSheet(Short distance, String routeEndPointAddress) {
         String firstPoint;
         if (pointFlag) {
             firstPoint = "Маршала Говорова";
@@ -171,26 +171,30 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         } else {
             firstPoint = newPoint;
         }
-        newPoint = address2;
-        Route route = new Route(firstPoint, address2, distance);
+        newPoint = routeEndPointAddress;
+        Route route = new Route(firstPoint, routeEndPointAddress, distance);
         sumDistance += distance;
         routeList.add(route);
         return newPoint;
     }
 
+    /**
+     * Enter the last waybill route.
+     * @param distance Distance between waypoints on a waybill.
+     * @param routeEndPointAddress route endpoint address.
+     */
     @Override
-    public void editingRoutesToRoutSheetEnd(Short distance, String address2) {
+    public void editingRoutesToRoutSheetEnd(Short distance, String routeEndPointAddress) {
         RouteSheet routeSheet = routeSheetRepo.findByTripDate(dateForAddRoutes);
         if (routeList.isEmpty()) {
-            Route route = new Route("Маршала Говорова", address2, distance);
+            Route route = new Route("Маршала Говорова", routeEndPointAddress, distance);
             sumDistance += distance;
             routeList.add(route);
         } else {
-            Route route = new Route(newPoint, address2, distance);
+            Route route = new Route(newPoint, routeEndPointAddress, distance);
             sumDistance += distance;
             routeList.add(route);
         }
-        ///     routeSheet.setRoutes(routeList);
 
         RouteSheet routeSheetForSave = calculationNewWaybillWithRoutes(routeSheet);
         routeSheetRepo.save(routeSheetForSave);
@@ -201,12 +205,20 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         routeList = new ArrayList<>();
     }
 
+    /**
+     * Deleting a database.
+     */
     @Override
     public void delete() {
         routeSheetRepo.deleteAll();
         routeRepo.deleteAll();
     }
 
+    /**
+     * calculation New Waybill With Routes.
+     * @param routeSheet routeSheet.
+     * @return routeSheet.
+     */
     private RouteSheet calculationNewWaybillWithRoutes(RouteSheet routeSheet) {
         RouteSheet lastRouteSheet = routeSheetRepo.findRouteSheetByWaybillNumber(routeSheet.getWaybillNumber() - 1);
 
@@ -222,7 +234,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return routeSheet;
     }
 
-    // ПОДСЧЕТ значений полей на новый путевой лист
+    /**
+     * Calculation new waybill.
+     * @param routeSheetDto routeSheetDto.
+     * @param lastRouteSheet Last RouteSheet.
+     * @return Modified waybill.
+     */
     private RouteSheet calculationNewWaybill(RouteSheetDto routeSheetDto, RouteSheet lastRouteSheet) {
         Integer WaybillNumber = lastRouteSheet.getWaybillNumber() + 1;
         Double fuelStart = lastRouteSheet.getFuelFinish();
