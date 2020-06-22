@@ -20,7 +20,7 @@ public interface RouteSheetService {
 
     boolean thereAreRoutes(String date);
 
-    String editingRoutesToRoutSheet2(Short distance, String address2);
+    String editingRoutesToRoutSheet(Short distance, String address2);
 
     void editingRoutesToRoutSheetEnd(Short distance, String address2);
 

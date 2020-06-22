@@ -98,13 +98,23 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return answerToMenu;
     }
 
-    @Override  // Есть ли МЛ на дату.
+    /**
+     * Check for the existence of a waybill for the desired date.
+     *
+     * @param date Searched date.
+     * @return Try or false.
+     */
+    @Override
     public boolean thereAreRoutes(String date) {
         dateForAddRoutes = LocalDate.parse(date);
         return routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes() == null;
     }
 
-    @Override  // Вывод информации
+    /**
+     * Display information on all existing waybills.
+     * @return List of waybills.
+     */
+    @Override
     public List<RouteSheet> generalInformation() {
         if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
             return null;
@@ -114,7 +124,13 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return routeSheetList;
     }
 
-    @Override // Вывод маршрутного листа на экран по дате
+    /**
+     * Display route sheet by date.
+     * @param date Searched date.
+     * @param model Representation.
+     * @return Returns to the main menu if there is no waybill for the desired date or displays the contents of the waybill.
+     */
+    @Override
     public String output(String date, Model model) {
         LocalDate data = LocalDate.parse(date);
         RouteSheet routeSheet = routeSheetRepo.findByTripDate(data);
@@ -127,13 +143,23 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return "output";
     }
 
+    /**
+     * Determines whether the base is empty or not.
+     * @return Try or false.
+     */
     @Override // Запрос : пуста ли база RouteSheet
     public boolean queryDatabaseIsEmpty() {
         return IterableUtils.size(routeSheetRepo.findAll()) == 0;
     }
 
+    /**
+     *
+     * @param distance
+     * @param address2
+     * @return
+     */
     @Override
-    public String editingRoutesToRoutSheet2(Short distance, String address2) {
+    public String editingRoutesToRoutSheet(Short distance, String address2) {
         String firstPoint;
         if (pointFlag) {
             firstPoint = "Маршала Говорова";
