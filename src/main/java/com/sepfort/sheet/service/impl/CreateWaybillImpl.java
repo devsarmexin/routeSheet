@@ -40,33 +40,33 @@ public class CreateWaybillImpl implements CreateWaybill {
     private RouteSheetRepo routeSheetRepo;
 
     @Autowired
-    public CreateWaybillImpl(RouteSheetRepo routeSheetRepo) {
+    public CreateWaybillImpl(final RouteSheetRepo routeSheetRepo) {
         this.routeSheetRepo = routeSheetRepo;
     }
 
     /**
      * Creating a route sheet in Excel.
      *
-     * @param data
-     * @param model
+     * @param date Date.
+     * @param model Representation.
      * @return Return to the main menu.
      * @throws IOException
      */
     @Override
-    public String createWaybill(String data, Model model) throws IOException {
-        LocalDate localDate = LocalDate.parse(data);
+    public String createWaybill(final String date, final Model model) throws IOException {
+        LocalDate localDate = LocalDate.parse(date);
         RouteSheet routeSheet = routeSheetRepo.findByTripDate(localDate);
         if (routeSheet == null) {
-            model.addAttribute("errorMessage", "На " + data + " маршрутный лист отсутствует");
+            model.addAttribute("errorMessage", "На " + date + " маршрутный лист отсутствует");
             return "menu";
         }
 
         List<Integer> integerList = Arrays.asList(4, 10, 6, 3, 6, 7, 21, 11, 30, 4, 35, 4, 38, 11, 39, 11, 40, 11, 41, 11, 42, 11, 49, 11);
-        List<String> value = enteringWaybillData(data);
+        List<String> value = enteringWaybillData(date);
 
         String newPath = "./src/main/resources/templates/forma/sheet/routeSheet" + routeSheet.getTripDate() + ".xlsx";
         if (Files.isExecutable(Paths.get(newPath))) {
-            model.addAttribute("errorMessage", "На " + data + " маршрутный лист уже создан");
+            model.addAttribute("errorMessage", "На " + date + " маршрутный лист уже создан");
             return "menu";
         }
         Path p = Paths.get("./src/main/resources/templates/forma/routeSheetTemplate.xlsx");
@@ -173,7 +173,7 @@ public class CreateWaybillImpl implements CreateWaybill {
         //    Desktop.getDesktop().print(new File("C://Users/SGavrilov/Desktop/blue-butterfly-images-clipart-13.png"));
 
         lastLine = 0;
-        model.addAttribute("errorMessage", "Маршрутный лист на " + data + " успешно сформирован");
+        model.addAttribute("errorMessage", "Маршрутный лист на " + date + " успешно сформирован");
         return "menu";
     }
 
@@ -182,7 +182,7 @@ public class CreateWaybillImpl implements CreateWaybill {
      * @param text Text
      * @return
      */
-    private String lineBreak(String text) {
+    private String lineBreak(final String text) {
         String resultLine1;
         String resultLine2;
         String resultLineEnd = "";
@@ -211,7 +211,7 @@ public class CreateWaybillImpl implements CreateWaybill {
      * @param data Date.
      * @return List of waybill.
      */
-    private List<String> enteringWaybillData(String data) {
+    private List<String> enteringWaybillData(final String data) {
         List<String> stringList = new ArrayList<>();
         var localDate = LocalDate.parse(data);
         var routeSheet = routeSheetRepo.findByTripDate(localDate);

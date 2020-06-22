@@ -18,18 +18,18 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     private UserRepo userRepo;
     private PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepo userRepo, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(final UserRepo userRepo, final PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         return userRepo.findByUsername(username);
     }
 
     @Override
-    public boolean addUser(User user, Model model) {
+    public boolean addUser(final User user, final Model model) {
         User userFromDB = userRepo.findByUsername(user.getUsername());
         if (userFromDB != null) {
             return false;

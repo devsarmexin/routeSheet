@@ -55,7 +55,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     private RouteRepo routeRepo;
 
     @Autowired
-    public RouteSheetServiceImpl(RouteSheetRepo routeSheetRepo, RouteRepo routeRepo) {
+    public RouteSheetServiceImpl(final RouteSheetRepo routeSheetRepo, final RouteRepo routeRepo) {
         this.routeSheetRepo = routeSheetRepo;
         this.routeRepo = routeRepo;
     }
@@ -67,7 +67,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @return Operation Result Information.
      */
     @Override
-    public Map<String, String> addingFirstRouteSheetToDatabase(RouteSheetDto routeSheetDto) {
+    public Map<String, String> addingFirstRouteSheetToDatabase(final RouteSheetDto routeSheetDto) {
         localDateFromAddRoutes = LocalDate.parse(routeSheetDto.getTripDate());
         Double saving = routeSheetDto.getConsumptionFact() - routeSheetDto.getConsumptionNorm();
         routeSheetRepo.save(new RouteSheet(localDateFromAddRoutes, routeSheetDto.getWaybillNumber(), routeSheetDto.getFuelStart(), routeSheetDto.getFuelFinish(), routeSheetDto.getMileageStart(), routeSheetDto.getMileageFinish(), routeSheetDto.getFueling(), routeSheetDto.getConsumptionNorm(), routeSheetDto.getConsumptionFact(), saving));
@@ -84,7 +84,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @return Operation Result Information.
      */
     @Override
-    public Map<String, String> addRouteSheetToDatabase(RouteSheetDto routeSheetDto, String isEdit) {
+    public Map<String, String> addRouteSheetToDatabase(final RouteSheetDto routeSheetDto, final String isEdit) {
         Map<String, String> answerToMenu = new HashMap<>();
         System.out.println("<><>< " + routeSheetDto.getTripDate());
         if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null && isEdit.equals("no")) {
@@ -109,7 +109,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @return Try or false.
      */
     @Override
-    public boolean thereAreRoutes(String date) {
+    public boolean thereAreRoutes(final String date) {
         dateForAddRoutes = LocalDate.parse(date);
         return routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes() == null;
     }
@@ -135,7 +135,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @return Returns to the main menu if there is no waybill for the desired date or displays the contents of the waybill.
      */
     @Override
-    public String output(String date, Model model) {
+    public String output(final String date, final Model model) {
         LocalDate data = LocalDate.parse(date);
         RouteSheet routeSheet = routeSheetRepo.findByTripDate(data);
         if (routeSheet == null) {
@@ -163,7 +163,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @return We return to the main menu if there are no more routes, otherwise we go to enter a new waybill route.
      */
     @Override
-    public String editingRoutesToRoutSheet(Short distance, String routeEndPointAddress) {
+    public String editingRoutesToRoutSheet(final Short distance, final String routeEndPointAddress) {
         String firstPoint;
         if (pointFlag) {
             firstPoint = "Маршала Говорова";
@@ -184,7 +184,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @param routeEndPointAddress route endpoint address.
      */
     @Override
-    public void editingRoutesToRoutSheetEnd(Short distance, String routeEndPointAddress) {
+    public void editingRoutesToRoutSheetEnd(final Short distance, final String routeEndPointAddress) {
         RouteSheet routeSheet = routeSheetRepo.findByTripDate(dateForAddRoutes);
         if (routeList.isEmpty()) {
             Route route = new Route("Маршала Говорова", routeEndPointAddress, distance);
@@ -219,7 +219,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @param routeSheet routeSheet.
      * @return routeSheet.
      */
-    private RouteSheet calculationNewWaybillWithRoutes(RouteSheet routeSheet) {
+    private RouteSheet calculationNewWaybillWithRoutes(final RouteSheet routeSheet) {
         RouteSheet lastRouteSheet = routeSheetRepo.findRouteSheetByWaybillNumber(routeSheet.getWaybillNumber() - 1);
 
         routeSheet.setMileageFinish(routeSheet.getMileageStart() + sumDistance);
@@ -240,12 +240,12 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * @param lastRouteSheet Last RouteSheet.
      * @return Modified waybill.
      */
-    private RouteSheet calculationNewWaybill(RouteSheetDto routeSheetDto, RouteSheet lastRouteSheet) {
-        Integer WaybillNumber = lastRouteSheet.getWaybillNumber() + 1;
+    private RouteSheet calculationNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet lastRouteSheet) {
+        Integer waybillNumber = lastRouteSheet.getWaybillNumber() + 1;
         Double fuelStart = lastRouteSheet.getFuelFinish();
         Integer mileageStart = lastRouteSheet.getMileageFinish();
         Short fueling = routeSheetDto.getFueling();
         Integer mileageFinish = routeSheetDto.getMileageFinish();
-        return new RouteSheet(LocalDate.parse(routeSheetDto.getTripDate()), WaybillNumber, fuelStart, mileageStart, mileageFinish, fueling);
+        return new RouteSheet(LocalDate.parse(routeSheetDto.getTripDate()), waybillNumber, fuelStart, mileageStart, mileageFinish, fueling);
     }
 }
