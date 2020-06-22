@@ -4,29 +4,22 @@ import lombok.NonNull;
 
 import javax.persistence.*;
 
-/** @noinspection checkstyle:LineLength*/
 @Entity
 @Table(name = "route")
 public class Route {
-    /** @noinspection checkstyle:JavadocVariable*/
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    /** @noinspection checkstyle:JavadocVariable*/
     @NonNull
     private String departurePoint;
-    /** @noinspection checkstyle:JavadocVariable*/
     @NonNull
     private String destinationPoint;
-    /** @noinspection checkstyle:JavadocVariable*/
     @NonNull
     private Short distance;
 
-    /** @noinspection checkstyle:MissingJavadocMethod*/
     public Route() {
     }
 
-    /** @noinspection checkstyle:HiddenField, checkstyle:FinalParameters, checkstyle:HiddenField, checkstyle:FinalParameters, checkstyle:HiddenField, checkstyle:FinalParameters, checkstyle:MissingJavadocMethod */
     public Route(String departurePoint, String destinationPoint, Short distance) {
         this.departurePoint = departurePoint;
         this.destinationPoint = destinationPoint;

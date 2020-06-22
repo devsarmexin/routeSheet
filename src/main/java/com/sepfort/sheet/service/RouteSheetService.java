@@ -10,9 +10,7 @@ import java.util.Map;
 public interface RouteSheetService {
     Map<String, String> addingFirstRouteSheetToDatabase(RouteSheetDto routeSheetDto);
 
-    Map<String, String> addRouteSheetToDatabase(RouteSheetDto routeSheetDto);
-
-    Map<String, String> editingRoutesToRoutSheet(Short distance, String address2, String flag, Model model);
+    Map<String, String> addRouteSheetToDatabase(RouteSheetDto routeSheetDto, String isEdit);
 
     List<RouteSheet> generalInformation();
 

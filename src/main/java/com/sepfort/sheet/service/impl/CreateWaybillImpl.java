@@ -26,21 +26,29 @@ import java.util.List;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+/**
+ * Creating a waybill in excel.
+ */
 @Service
 public class CreateWaybillImpl implements CreateWaybill {
+
+    /**
+     * Last row in excel sheet.
+     */
     private int lastLine;
 
     @Autowired
     private RouteSheetRepo routeSheetRepo;
 
-    /** @noinspection checkstyle:MagicNumber, checkstyle:MagicNumber, checkstyle:MagicNumber, checkstyle:MagicNumber */
     /**
+     * Creating a route sheet in Excel.
+     *
      * @param data
      * @param model
-     * @return
+     * @return Return to the main menu.
      * @throws IOException
      */
-    @Override // Формирование маршрутного листа в Excel
+    @Override
     public String createWaybill(String data, Model model) throws IOException {
         LocalDate localDate = LocalDate.parse(data);
         RouteSheet routeSheet = routeSheetRepo.findByTripDate(localDate);

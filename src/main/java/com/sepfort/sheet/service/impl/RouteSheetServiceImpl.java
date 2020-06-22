@@ -9,12 +9,9 @@ import com.sepfort.sheet.service.RouteSheetService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,24 +20,49 @@ import java.util.Map;
 
 @Service
 public class RouteSheetServiceImpl implements RouteSheetService {
+
+    /**
+     * Flag of the starting point of the first route of the waybill.
+     */
     private boolean pointFlag = true;
+
+    /**
+     * Starting point of the route of the waybill.
+     */
     private String newPoint;
+
+    /**
+     * The sum of the distance traveled.
+     */
     private Integer sumDistance = 0;
+
+    /**
+     * List of directions of the waybill.
+     */
     private List<Route> routeList = new ArrayList<>();
-    private LocalDate localDateFromAddRoutes; // дата первого ПЛ
-    private LocalDate dateForAddRoutes; //Дата для занесения маршрутов в ПЛ
+
+    /**
+     * Date of first waybill.
+     */
+    private LocalDate localDateFromAddRoutes;
+
+    /**
+     * Date for entering routes on the waybill.
+     */
+    private LocalDate dateForAddRoutes;
 
     @Autowired
     private RouteSheetRepo routeSheetRepo;
     @Autowired
     private RouteRepo routeRepo;
 
+    /**
+     * Adding the first waybill to the database.
+     *
+     * @param routeSheetDto
+     * @return Operation Result Information.
+     */
     @Override
-    public Map<String, String> editingRoutesToRoutSheet(Short distance, String address2, String flag, Model model) {
-        return null;
-    }
-
-    @Override  // Добавление в БД первого ПЛ
     public Map<String, String> addingFirstRouteSheetToDatabase(RouteSheetDto routeSheetDto) {
         localDateFromAddRoutes = LocalDate.parse(routeSheetDto.getTripDate());
         Double saving = routeSheetDto.getConsumptionFact() - routeSheetDto.getConsumptionNorm();
@@ -50,10 +72,18 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return answerToMenu;
     }
 
-    @Override  // Добавление в БД нового ПЛ
-    public Map<String, String> addRouteSheetToDatabase(RouteSheetDto routeSheetDto) {
+    /**
+     * Adding a new waybill to the database.
+     *
+     * @param routeSheetDto
+     * @param isEdit        Is the waybill editable.
+     * @return Operation Result Information.
+     */
+    @Override
+    public Map<String, String> addRouteSheetToDatabase(RouteSheetDto routeSheetDto, String isEdit) {
         Map<String, String> answerToMenu = new HashMap<>();
-        if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null) {
+        System.out.println("<><>< " + routeSheetDto.getTripDate());
+        if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null && isEdit.equals("no")) {
             answerToMenu.put("errorMessage", "На " + routeSheetDto.getTripDate() + " есть путевой лист");
             return answerToMenu;
         }

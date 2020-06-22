@@ -208,10 +208,7 @@ public class RouteSheet {
         return waybillNumber;
     }
 
-    /** @noinspection checkstyle:HiddenField, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     public void setWaybillNumber(Integer waybillNumber) {
         this.waybillNumber = waybillNumber;
     }
-
-    //</editor-fold>
 }
