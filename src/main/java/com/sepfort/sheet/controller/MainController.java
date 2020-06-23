@@ -1,115 +1,178 @@
 package com.sepfort.sheet.controller;
 
-import com.sepfort.sheet.repo.RouteSheetRepo;
+import com.sepfort.sheet.domain.RouteSheet;
+import com.sepfort.sheet.dto.RouteSheetDto;
+import com.sepfort.sheet.mapper.RouteSheetMapper;
 import com.sepfort.sheet.service.RouteSheetService;
 import com.sepfort.sheet.service.impl.CreateWaybillImpl;
-import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class MainController {
-    @Autowired
     private RouteSheetService routeSheetService;
-    @Autowired
     private CreateWaybillImpl createWaybillImpl;
-    @Autowired
-    private RouteSheetRepo routeSheetRepo;
+    private RouteSheetMapper routeSheetMapper;
 
-    @GetMapping  // Вход
+    @Autowired
+    public MainController(RouteSheetService routeSheetService, CreateWaybillImpl createWaybill, RouteSheetMapper routeSheetMapper) {
+        this.routeSheetService = routeSheetService;
+        this.createWaybillImpl = createWaybill;
+        this.routeSheetMapper = routeSheetMapper;
+    }
+
+    @GetMapping  // Вход //
     public String menuEntry(Model model) {
         model.addAttribute("errorMessage", "");
         return "menu";
     }
 
-    @PostMapping("/primary_input") //Первичное заполнение первого путевого листа
-    public String primaryInput(
-            @RequestParam String dateToString,
-            @RequestParam Long number,
-            @RequestParam Double fuelStart,
-            @RequestParam Double fuelFinish,
-            @RequestParam Long mileageStart,
-            @RequestParam Long mileageFinish,
-            @RequestParam Long fueling,
-            @RequestParam Double consumptionNorm,
-            @RequestParam Double consumptionFact,
-            Model model
-    ) {
-        return routeSheetService.addingFirstRouteSheetToDatabase(dateToString, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
+    /** @noinspection checkstyle:LineLength, checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:LineLength, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
+    @PostMapping("/primary_input") //Первичное заполнение первого путевого листа //
+    public String primaryInput(@ModelAttribute RouteSheetDto routeSheetDto, Model model) {
+        Map<String, String> answerToMenu = routeSheetService.addingFirstRouteSheetToDatabase(routeSheetDto);
+        model.addAttribute("errorMessage", answerToMenu.get("errorMessage"));
+        return "menu";
     }
 
-    @GetMapping("/routeSheet") // Вывод приветственной информации
+    /** @noinspection checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
+    @GetMapping("/routeSheet") // Вывод приветственной информации //
     public String intro() {
         return "routeSheet";
     }
 
-    @GetMapping("/information")  // Вывод информации
+    /** @noinspection checkstyle:LineLength, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
+    @GetMapping("/information")  // Вывод информации  //
     public String generalInformation(Model model) {
-        return routeSheetService.generalInformation(model);
+        List<RouteSheet> routeSheetList = routeSheetService.generalInformation();
+        if (routeSheetList == null) {
+            model.addAttribute("errorMessage", "База данных пуста");
+            return "menu";
+        }
+        model.addAttribute("routeSheetList", routeSheetList);
+        return "information";
     }
 
+    /** @noinspection checkstyle:LineLength, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/filling")
-    public String fillingOutTheWaybill() {
-        if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
+    public String fillingOutTheWaybill(Model model) {
+        if (routeSheetService.queryDatabaseIsEmpty()) { // Запрос на пустоту БД RouteSheet
+            model.addAttribute("hello", "user");
             return "first";
         }
         return "fueling"; // Запрос данных (дата, запрвка) для добавления ПЛ
     }
-    
-    @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа
-    public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
-        return routeSheetService.addRouteSheetToDatabase(fuel, data, isEdit, model);
+
+    /** @noinspection checkstyle:LineLength, checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:LineLength, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
+    @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа  //
+    public String goToAddRoute(@ModelAttribute RouteSheetDto routeSheetDto, Model model) {
+        Map<String, String> answerToMenu = routeSheetService.addRouteSheetToDatabase(routeSheetDto);
+        model.addAttribute("errorMessage", answerToMenu.get("errorMessage"));
+        return "menu";
     }
 
+    /** @noinspection checkstyle:LineLength, checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/editRoute") // Получаем дату (из date.ftlh) и идём заполнять маршруты
-    public String edit(@RequestParam String date, @RequestParam(defaultValue = "no") String isEdit, Model model) {
-        return routeSheetService.addingRoutesToRoutSheet(date, isEdit, model);
+    public String edit(@RequestParam String date, Model model) {
+        boolean isDatabaseIsEmpty = routeSheetService.queryDatabaseIsEmpty();
+        if (isDatabaseIsEmpty) {
+            model.addAttribute("errorMessage", " БД пуста");
+            return "menu";
+        }
+        boolean thereAreRoutes = routeSheetService.thereAreRoutes(date);
+        if (thereAreRoutes) {
+            model.addAttribute("errorMessage", "На " + date + " заполнены маршруты");
+            return "menu";
+        }
+        model.addAttribute("firstPoint", "Маршала Говорова");
+        return "addingRoutes";
     }
 
+    /** @noinspection checkstyle:LineLength, checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/editingRoutes") // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
     public String edit2(
-            @RequestParam Long distance,
+            @RequestParam Short distance,
             @RequestParam String address2,
             @RequestParam String flag,
             Model model
     ) {
-        return routeSheetService.editingRoutesToRoutSheet(distance, address2, flag, model);
+        if (flag.equals("yes")) {
+            String firstPoint = routeSheetService.editingRoutesToRoutSheet2(distance, address2);
+            model.addAttribute("firstPoint", firstPoint);
+            return "addingRoutes";
+        }
+        routeSheetService.editingRoutesToRoutSheetEnd(distance, address2);
+        model.addAttribute("errorMessage", "Маршруты добавллены");
+        return "menu";
     }
 
+    /** @noinspection checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/addingRoutes") // Запрос даты для добавления маршрутов (далее /edit)
     public String date() {
         return "date";
     }
 
+    /** @noinspection checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/viewRouteSheetByDate") // Запрос даты для просмотра ПЛ
-    public String date2() {
+    public String dateForViewRouteSheetByDate() {
         return "dateForViewRouteSheetByDate";
     }
 
+    /** @noinspection checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/formExcel") // Запрос даты для формирования ПЛ в Excel
     public String date3() {
         return "dataForCreateWaybillAdd";
     }
 
+    /** @noinspection checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/output")  //Вывод маршрутного листа по дате
     public String output(@RequestParam String date, Model model) {
         return routeSheetService.output(date, model);
     }
 
+    /** @noinspection checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:LineLength, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/createWaybill")
     public String createWaybill(@RequestParam String data, Model model) throws IOException {
         return createWaybillImpl.createWaybill(data, model);
     }
 
+    /** @noinspection checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
     @GetMapping("/waybillEditing")
     public String waybillEditing() {
         return "fuelingForEdit";
+    }
+
+    /** @noinspection checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
+    @GetMapping("/deleteDataBase")
+    public String deleteDataBase() {
+        return "deleteDataBase";
+    }
+
+    /** @noinspection checkstyle:FinalParameters, checkstyle:FinalParameters, checkstyle:DesignForExtension, checkstyle:MissingJavadocMethod */
+    @GetMapping("/delete")
+    public String delete(@RequestParam String isDelete, Model model) {
+        if (isDelete.equals("yes")) {
+            routeSheetService.delete();
+            model.addAttribute("errorMessage", "Очистили БД");
+            return "menu";
+        }
+
+        model.addAttribute("errorMessage", "Не стали очищать БД");
+        return "menu";
+    }
+
+    @GetMapping("/download")
+    public ResponseEntity<String> download(@RequestBody String string) {
+        String responceObject = "Hello";
+        return new ResponseEntity<String>(responceObject, HttpStatus.OK);
     }
 }
 

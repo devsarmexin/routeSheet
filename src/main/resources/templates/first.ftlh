@@ -1,14 +1,14 @@
 <#import "parts/common.ftlh" as c>
 
 <@c.page>
-    <div>Hello, Natalia!</div>
+    <div>Hello, ${hello}!</div>
     <div>Нет не одного заполненного путевого листа.</div>
     <div>Вам необходимо заполнить первый путевой лист.</div>
     <div>
         <form method="post" action="/primary_input">
-            <input type="date" name="dateToString" required/>
+            <input type="date" name="tripDate" required/>
             <label>Введите дату</label><br>
-            <input type="number" name="number" min="1" required placeholder="порядковый номер"/>
+            <input type="number" name="waybillNumber" min="1" required placeholder="порядковый номер"/>
             <label>Введите номер путевого листа</label><br>
             <input type="number" name="fuelStart" value="fuelStart" required step="0.01" min="0" placeholder="0,00 литры"/>
             <label>Введите количество топлива на начало дня</label><br>
