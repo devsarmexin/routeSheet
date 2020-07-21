@@ -1,10 +1,10 @@
 package com.sepfort.sheet.controller;
 
 import com.sepfort.sheet.domain.User;
+import com.sepfort.sheet.exception.UserException;
 import com.sepfort.sheet.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -23,12 +23,8 @@ public class RegistrationController {
     }
 
     @PostMapping("/registration")
-    public String addUser(User user, Model model) {
-        boolean isAdd = userService.addUser(user, model);
-        if (isAdd) {
-            model.addAttribute("message", "User already exists!");
-            return "registration";
-        }
+    public String addUser(User user) throws UserException {
+        userService.addUser(user);
         return "redirect:/login";
     }
 }

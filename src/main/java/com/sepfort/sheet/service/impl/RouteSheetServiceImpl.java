@@ -51,6 +51,13 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      */
     private LocalDate dateForAddRoutes;
 
+    /**
+     * Modified waybill.
+     */
+    private Integer numberModifiedWAyBill;
+
+    private int step;
+
     private RouteSheetRepo routeSheetRepo;
     private RouteRepo routeRepo;
 
@@ -86,20 +93,60 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     @Override
     public Map<String, String> addRouteSheetToDatabase(final RouteSheetDto routeSheetDto, final String isEdit) {
         Map<String, String> answerToMenu = new HashMap<>();
-        System.out.println("<><>< " + routeSheetDto.getTripDate());
-        if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null && isEdit.equals("no")) {
-            answerToMenu.put("errorMessage", "На " + routeSheetDto.getTripDate() + " есть путевой лист");
-            return answerToMenu;
-        }
+        System.out.println("Дата изменяемого ПЛ " + routeSheetDto.getTripDate());
+//        if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null && isEdit.equals("no")) {
+//            answerToMenu.put("errorMessage", "На " + routeSheetDto.getTripDate() + " есть путевой лист");
+//            return answerToMenu;
+//        }
         RouteSheet lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        if (lastRouteSheet.getMileageFinish() == null) {
-            answerToMenu.put("errorMessage", "Предыдущий маршрутный лист без пробега (нет маршрутов)");
+//        if (lastRouteSheet.getMileageFinish() == null) {
+//            answerToMenu.put("errorMessage", "Предыдущий маршрутный лист без пробега (нет маршрутов)");
+//            return answerToMenu;
+//        }
+        if (isEdit.equals("yes")) {
+            //Вставить проверку на то, что номер ПЛ больше 1. Иначе надо заносить данные через ввод первого ПЛ.
+            LocalDate date = LocalDate.parse(routeSheetDto.getTripDate());
+            Integer id = routeSheetRepo.findByTripDate(date).getId();
+            RouteSheet routesheet = changeWaybill(routeSheetDto);
+            routeSheetRepo.save(routesheet);
+            routeSheetRepo.deleteById(id);
+            answerToMenu.put("errorMessage", "Изменённый маршрутный лист на " + routeSheetDto.getTripDate() + " создан. ТЕПЕРЬ ОБЯЗАТЕЛЬНО ВВЕДИТЕ МАРШРУТЫ НА ЭТУ ДАТУ!!!");
             return answerToMenu;
         }
         RouteSheet routeSheet = calculationNewWaybill(routeSheetDto, lastRouteSheet);
         routeSheetRepo.save(routeSheet);
         answerToMenu.put("errorMessage", "Новый маршрутный лист на " + routeSheetDto.getTripDate() + " создан.");
         return answerToMenu;
+    }
+
+    /**
+     * Change waybill.
+     * @param routeSheetDto routeSheetDto.
+     * @return
+     */
+    private RouteSheet changeWaybill(final RouteSheetDto routeSheetDto) {
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate()));
+        Integer waybillNumber = routeSheet.getWaybillNumber();
+        RouteSheet previousRouteSheet = routeSheetRepo.findByWaybillNumber(waybillNumber);
+        RouteSheet modifiedRouteSheet = calculationChangeNewWaybill(routeSheetDto, previousRouteSheet);
+        return modifiedRouteSheet;
+    }
+
+    /**
+     * Пересчёт изменяемого ПЛ
+     * @param routeSheetDto
+     * @param previousRouteSheet
+     * @return
+     */
+
+    private RouteSheet calculationChangeNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet previousRouteSheet) {
+//сделать проверку на то, что возможен изменен первый ПЛ и предыдущего не будет путевого листа.
+        Integer waybillNumber = previousRouteSheet.getWaybillNumber();
+        LocalDate date = LocalDate.parse(routeSheetDto.getTripDate());
+        Double fuelStart = previousRouteSheet.getFuelStart();
+        Integer mileageStart = previousRouteSheet.getMileageStart();
+        Short fueling = routeSheetDto.getFueling();
+        return new RouteSheet(date, waybillNumber, fuelStart, mileageStart, fueling);
     }
 
     /**
@@ -214,6 +261,40 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         routeRepo.deleteAll();
     }
 
+    // пересчёт всех маршрутных листов
+    /**
+     * Database recalculation.
+     */
+    @Override
+    public void databaseRecalculation() {
+        step = 1;
+        Integer maximumNumberOfWaybills = routeSheetRepo.findMaxNumberOfWaybills();
+        while (routeSheetRepo.findByWaybillNumber(step) != null) {
+            RouteSheet modifiedWayBill = routeSheetRepo.findRouteSheetByWaybillNumber(step);
+            if (step == maximumNumberOfWaybills) {
+                return;
+            }
+            RouteSheet previousWaybill = routeSheetRepo.findByWaybillNumber(step);
+            RouteSheet waybill = routeSheetRepo.findByWaybillNumber(step + 1);
+
+            Double fuelStart = previousWaybill.getFuelFinish();
+            Integer mileageStart = previousWaybill.getMileageFinish();
+            Integer mileageFinish = mileageStart + waybill.getDistance();
+            Double fuelFinish = previousWaybill.getFuelFinish() + waybill.getFueling() - waybill.getConsumptionFact();
+
+            waybill.setFuelStart(fuelStart);
+            waybill.setMileageStart(mileageStart);
+            waybill.setMileageFinish(mileageFinish);
+            waybill.setFuelFinish(fuelFinish);
+
+            routeSheetRepo.deleteById(waybill.getId());
+            routeSheetRepo.save(waybill);
+            RouteSheet x = routeSheetRepo.findByWaybillNumber(2);
+
+            step++;
+        }
+    }
+
     /**
      * calculation New Waybill With Routes.
      * @param routeSheet routeSheet.
@@ -237,13 +318,13 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     /**
      * Calculation new waybill.
      * @param routeSheetDto routeSheetDto.
-     * @param lastRouteSheet Last RouteSheet.
+     * @param previousRouteSheet Previous RouteSheet.
      * @return Modified waybill.
      */
-    private RouteSheet calculationNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet lastRouteSheet) {
-        Integer waybillNumber = lastRouteSheet.getWaybillNumber() + 1;
-        Double fuelStart = lastRouteSheet.getFuelFinish();
-        Integer mileageStart = lastRouteSheet.getMileageFinish();
+    private RouteSheet calculationNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet previousRouteSheet) {
+        Integer waybillNumber = previousRouteSheet.getWaybillNumber() + 1;
+        Double fuelStart = previousRouteSheet.getFuelFinish();
+        Integer mileageStart = previousRouteSheet.getMileageFinish();
         Short fueling = routeSheetDto.getFueling();
         Integer mileageFinish = routeSheetDto.getMileageFinish();
         return new RouteSheet(LocalDate.parse(routeSheetDto.getTripDate()), waybillNumber, fuelStart, mileageStart, mileageFinish, fueling);

@@ -64,6 +64,14 @@ public class RouteSheet {
         this.fueling = fueling;
     }
 
+    public RouteSheet(LocalDate tripDate, Integer waybillNumber, Double fuelStart, Integer mileageStart, Short fueling) {
+        this.tripDate = tripDate;
+        this.waybillNumber = waybillNumber;
+        this.fuelStart = fuelStart;
+        this.mileageStart = mileageStart;
+        this.fueling = fueling;
+    }
+
     public RouteSheet(LocalDate tripDate, Short fueling, Integer distance, List<Route> routes) {
         this.tripDate = tripDate;
         this.fueling = fueling;

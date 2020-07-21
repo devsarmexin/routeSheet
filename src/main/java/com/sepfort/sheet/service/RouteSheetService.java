@@ -73,4 +73,9 @@ public interface RouteSheetService {
      * Deleting a database.
      */
     void delete();
+
+    /**
+     * Database recalculation.
+     */
+    void databaseRecalculation();
 }

@@ -16,11 +16,19 @@ public interface RouteSheetRepo extends CrudRepository<RouteSheet, Integer> {
 
     RouteSheet findByTripDate(LocalDate tripDate);
 
-    @Query(value = "SELECT MAX (tripDate) AS tripDate from RouteSheet")
+    @Query(value = "SELECT MAX (tripDate) AS tripDate FROM RouteSheet")
     LocalDate findMaxDate();
 
     List<RouteSheet> findAllByTripDateIsNotNull();
 
     RouteSheet findRouteSheetByWaybillNumber(Integer waybillNumber);
+
+    RouteSheet findByWaybillNumber(Integer waybillNumber);
+
+    @Query(value = "SELECT MIN(waybillNumber) FROM RouteSheet")
+    Integer findMinWaybillNumber();
+
+    @Query(value = "SELECT MAX(waybillNumber) FROM RouteSheet ")
+    Integer findMaxNumberOfWaybills();
 
 }

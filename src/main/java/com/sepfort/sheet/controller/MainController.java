@@ -113,8 +113,8 @@ public class MainController {
      */
     @GetMapping("/editRoute")
     public String edit(@RequestParam String date, Model model) {
-        boolean isDatabaseIsEmpty = routeSheetService.queryDatabaseIsEmpty();
-        if (isDatabaseIsEmpty) {
+     //   boolean isDatabaseIsEmpty = routeSheetService.queryDatabaseIsEmpty();
+        if (routeSheetService.queryDatabaseIsEmpty()) {
             model.addAttribute("errorMessage", " БД пуста");
             return "menu";
         }
@@ -248,6 +248,14 @@ public class MainController {
     public ResponseEntity<String> download(@RequestBody String string) {
         String responceObject = "Hello";
         return new ResponseEntity<String>(responceObject, HttpStatus.OK);
+    }
+
+    @GetMapping("/recalculationOfWaybills")
+    public String recalculationOfWaybills(Model model) {
+        System.out.println("Пересчёт всех ПЛ ");
+        routeSheetService.databaseRecalculation();
+        model.addAttribute("errorMessage", "БД перерасчитана");
+        return "menu";
     }
 }
 

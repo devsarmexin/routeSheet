@@ -1,8 +1,8 @@
 package com.sepfort.sheet.service;
 
 import com.sepfort.sheet.domain.User;
-import org.springframework.ui.Model;
+import com.sepfort.sheet.exception.UserException;
 
 public interface UserService {
-    boolean addUser(User user, Model model);
+    void addUser(User user) throws UserException;
 }
