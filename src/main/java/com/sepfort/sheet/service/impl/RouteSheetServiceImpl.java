@@ -94,17 +94,13 @@ public class RouteSheetServiceImpl implements RouteSheetService {
     public Map<String, String> addRouteSheetToDatabase(final RouteSheetDto routeSheetDto, final String isEdit) {
         Map<String, String> answerToMenu = new HashMap<>();
         System.out.println("Дата изменяемого ПЛ " + routeSheetDto.getTripDate());
-//        if (routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate())) != null && isEdit.equals("no")) {
-//            answerToMenu.put("errorMessage", "На " + routeSheetDto.getTripDate() + " есть путевой лист");
-//            return answerToMenu;
-//        }
         RouteSheet lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-//        if (lastRouteSheet.getMileageFinish() == null) {
-//            answerToMenu.put("errorMessage", "Предыдущий маршрутный лист без пробега (нет маршрутов)");
-//            return answerToMenu;
-//        }
+        if (lastRouteSheet.getMileageFinish() == null) {
+            answerToMenu.put("errorMessage", "Предыдущий маршрутный лист без пробега (нет маршрутов)");
+            return answerToMenu;
+        }
         if (isEdit.equals("yes")) {
-            //Вставить проверку на то, что номер ПЛ больше 1. Иначе надо заносить данные через ввод первого ПЛ.
+            //TODO: Вставить проверку на то, что номер ПЛ больше 1. Иначе надо заносить данные через ввод первого ПЛ.
             LocalDate date = LocalDate.parse(routeSheetDto.getTripDate());
             Integer id = routeSheetRepo.findByTripDate(date).getId();
             RouteSheet routesheet = changeWaybill(routeSheetDto);
@@ -140,7 +136,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      */
 
     private RouteSheet calculationChangeNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet previousRouteSheet) {
-//сделать проверку на то, что возможен изменен первый ПЛ и предыдущего не будет путевого листа.
+    //TODO: сделать проверку на то, что возможен изменен первый ПЛ и предыдущего не будет путевого листа.
         Integer waybillNumber = previousRouteSheet.getWaybillNumber();
         LocalDate date = LocalDate.parse(routeSheetDto.getTripDate());
         Double fuelStart = previousRouteSheet.getFuelStart();
@@ -198,7 +194,7 @@ public class RouteSheetServiceImpl implements RouteSheetService {
      * Determines whether the base is empty or not.
      * @return Try or false.
      */
-    @Override // Запрос : пуста ли база RouteSheet
+    @Override
     public boolean queryDatabaseIsEmpty() {
         return IterableUtils.size(routeSheetRepo.findAll()) == 0;
     }
@@ -261,7 +257,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         routeRepo.deleteAll();
     }
 
-    // пересчёт всех маршрутных листов
     /**
      * Database recalculation.
      */
@@ -270,7 +265,6 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         step = 1;
         Integer maximumNumberOfWaybills = routeSheetRepo.findMaxNumberOfWaybills();
         while (routeSheetRepo.findByWaybillNumber(step) != null) {
-            RouteSheet modifiedWayBill = routeSheetRepo.findRouteSheetByWaybillNumber(step);
             if (step == maximumNumberOfWaybills) {
                 return;
             }
