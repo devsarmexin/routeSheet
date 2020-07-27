@@ -1,5 +1,6 @@
 package com.sepfort.sheet.service.impl;
 
+import com.sepfort.sheet.domain.RouteSheet;
 import com.sepfort.sheet.repo.RouteSheetRepo;
 import com.sepfort.sheet.service.CreateWaybill;
 import org.apache.poi.ss.usermodel.Cell;
@@ -25,33 +26,52 @@ import java.util.List;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+/**
+ * Creating a waybill in excel.
+ */
 @Service
 public class CreateWaybillImpl implements CreateWaybill {
+
+    /**
+     * Last row in excel sheet.
+     */
     private int lastLine;
 
-    @Autowired
     private RouteSheetRepo routeSheetRepo;
 
-    @Override // Формирование маршрутного листа в Excel
-    public String createWaybill(String data, Model model) throws IOException {
-        var localDate = LocalDate.parse(data);
-        var routeSheet = routeSheetRepo.findByData(localDate);
+    @Autowired
+    public CreateWaybillImpl(final RouteSheetRepo routeSheetRepo) {
+        this.routeSheetRepo = routeSheetRepo;
+    }
+
+    /**
+     * Creating a route sheet in Excel.
+     *
+     * @param date Date.
+     * @param model Representation.
+     * @return Return to the main menu.
+     * @throws IOException
+     */
+    @Override
+    public String createWaybill(final String date, final Model model) throws IOException {
+        LocalDate localDate = LocalDate.parse(date);
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(localDate);
         if (routeSheet == null) {
-            model.addAttribute("errorMessage", "На " + data + " маршрутный лист отсутствует");
+            model.addAttribute("errorMessage", "На " + date + " маршрутный лист отсутствует");
             return "menu";
         }
 
         List<Integer> integerList = Arrays.asList(4, 10, 6, 3, 6, 7, 21, 11, 30, 4, 35, 4, 38, 11, 39, 11, 40, 11, 41, 11, 42, 11, 49, 11);
-        List<String> value = enteringWaybillData(data);
+        List<String> value = enteringWaybillData(date);
 
-        String newPath = "./src/main/resources/templates/forma/sheet/routeSheet" + routeSheet.getData() + ".xlsx";
+        String newPath = "./src/main/resources/templates/forma/sheet/routeSheet" + routeSheet.getTripDate() + ".xlsx";
         if (Files.isExecutable(Paths.get(newPath))) {
-            model.addAttribute("errorMessage", "На " + data + " маршрутный лист уже создан");
+            model.addAttribute("errorMessage", "На " + date + " маршрутный лист уже создан");
             return "menu";
         }
         Path p = Paths.get("./src/main/resources/templates/forma/routeSheetTemplate.xlsx");
         Path newFile = Files.copy(p, Paths.get("./src/main/resources/templates/forma/sheet/routeSheetTemplate.xlsx"), REPLACE_EXISTING);
-        Files.move(newFile, newFile.resolveSibling("routeSheet" + routeSheet.getData() + ".xlsx"));
+        Files.move(newFile, newFile.resolveSibling("routeSheet" + routeSheet.getTripDate() + ".xlsx"));
 
         FileInputStream fileIS = new FileInputStream(new File(newPath));
         XSSFWorkbook workbook = new XSSFWorkbook(fileIS);
@@ -62,13 +82,11 @@ public class CreateWaybillImpl implements CreateWaybill {
             Row row = xssfSheet.getRow(integerList.get(i));
             Cell cell = row.getCell(integerList.get(i + 1));
             cell.setCellValue(value.get(element++));
-            System.out.println(">>> element = " + element);
             i++;
         }
 
-        int numberOfRoutes = routeSheet.getAddress().size() * 3;
+        int numberOfRoutes = routeSheet.getRoutes().size() * 3;
         for (int i = 0; i < numberOfRoutes; i = i + 3) {
-            System.out.println(">>> " + i);
             CellRangeAddress cellRangeAddress1 = new CellRangeAddress(58 + i, 60 + i, 0, 0);
             xssfSheet.addMergedRegion(cellRangeAddress1);
             CellRangeAddress cellRangeAddress2 = new CellRangeAddress(58 + i, 60 + i, 1, 1);
@@ -134,16 +152,15 @@ public class CreateWaybillImpl implements CreateWaybill {
         int index = 0;
         List<Integer> list = Arrays.asList(0, 2, 3, 7);
         for (int i = 0; i < numberOfRoutes; i = i + 3) {
-            System.out.println(">>> " + i);
             row6 = xssfSheet2.getRow(58 + i);
             Cell cell11 = row6.createCell(list.get(0));
-            cell11.setCellValue(routeSheet.getNumber());
+            cell11.setCellValue(routeSheet.getWaybillNumber());
             Cell cell12 = row6.createCell(list.get(1));
-            cell12.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDeparture_point()));
+            cell12.setCellValue(lineBreak(routeSheet.getRoutes().get(index).getDeparture_point()));
             Cell cell13 = row6.createCell(list.get(2));
-            cell13.setCellValue(lineBreak(routeSheet.getAddress().get(index).getDestination()));
+            cell13.setCellValue(lineBreak(routeSheet.getRoutes().get(index).getDestination()));
             Cell cell14 = row6.createCell(list.get(3));
-            cell14.setCellValue(lineBreak(String.valueOf(routeSheet.getAddress().get(index).getDistance())));
+            cell14.setCellValue(lineBreak(String.valueOf(routeSheet.getRoutes().get(index).getDistance())));
             index++;
         }
 
@@ -156,40 +173,49 @@ public class CreateWaybillImpl implements CreateWaybill {
         //    Desktop.getDesktop().print(new File("C://Users/SGavrilov/Desktop/blue-butterfly-images-clipart-13.png"));
 
         lastLine = 0;
-        model.addAttribute("errorMessage", "Маршрутный лист на " + data + " успешно сформирован");
+        model.addAttribute("errorMessage", "Маршрутный лист на " + date + " успешно сформирован");
         return "menu";
     }
 
-    private String lineBreak(String text) {
-        String result;
-        String result2;
-        String result3 = "";
-        String result4;
+    /**
+     * Formation of a line with hyphens.
+     * @param text Text
+     * @return
+     */
+    private String lineBreak(final String text) {
+        String resultLine1;
+        String resultLine2;
+        String resultLineEnd = "";
+        String resultLine3;
         String l = String.valueOf(text);
         char[] chars = l.toCharArray();
-        System.out.println(">>> Длина строки = " + chars.length);
         if (chars.length < 15) {
-            result3 = l;
+            resultLineEnd = l;
         }
         if (chars.length >= 15 && chars.length < 30) {
-            result = new String(chars, 0, 15);
-            result2 = new String(chars, 15, chars.length - 15);
-            result3 = result + "\n" + result2;
+            resultLine1 = new String(chars, 0, 15);
+            resultLine2 = new String(chars, 15, chars.length - 15);
+            resultLineEnd = resultLine1 + "\n" + resultLine2;
         }
         if (chars.length >= 30) {
-            result = new String(chars, 0, 15);
-            result2 = new String(chars, 15, 15);
-            result4 = new String(chars, 30, chars.length - 30);
-            result3 = result + "\n" + result2 + "\n" + result4;
+            resultLine1 = new String(chars, 0, 15);
+            resultLine2 = new String(chars, 15, 15);
+            resultLine3 = new String(chars, 30, chars.length - 30);
+            resultLineEnd = resultLine1 + "\n" + resultLine2 + "\n" + resultLine3;
         }
-        return result3;
+        return resultLineEnd;
     }
 
-    private List<String> enteringWaybillData(String data) {
+    /**
+     * Entering waybill data.
+     * @param data Date.
+     * @return List of waybill.
+     */
+    private List<String> enteringWaybillData(final String data) {
         List<String> stringList = new ArrayList<>();
         var localDate = LocalDate.parse(data);
-        var routeSheet = routeSheetRepo.findByData(localDate);
-        stringList.add(0, String.valueOf(routeSheet.getNumber()));
+        var routeSheet = routeSheetRepo.findByTripDate(localDate);
+        stringList.add(0, String.valueOf(routeSheet.getWaybillNumber()));
         stringList.add(1, data);
         stringList.add(2, data);
         stringList.add(3, String.valueOf(routeSheet.getMileageStart()));

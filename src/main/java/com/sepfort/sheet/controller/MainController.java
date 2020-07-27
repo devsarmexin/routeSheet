@@ -1,115 +1,261 @@
 package com.sepfort.sheet.controller;
 
-import com.sepfort.sheet.repo.RouteSheetRepo;
+import com.sepfort.sheet.domain.RouteSheet;
+import com.sepfort.sheet.dto.RouteSheetDto;
+import com.sepfort.sheet.mapper.RouteSheetMapper;
 import com.sepfort.sheet.service.RouteSheetService;
 import com.sepfort.sheet.service.impl.CreateWaybillImpl;
-import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class MainController {
-    @Autowired
     private RouteSheetService routeSheetService;
-    @Autowired
     private CreateWaybillImpl createWaybillImpl;
-    @Autowired
-    private RouteSheetRepo routeSheetRepo;
+    private RouteSheetMapper routeSheetMapper;
 
-    @GetMapping  // Вход
+    @Autowired
+    public MainController(RouteSheetService routeSheetService, CreateWaybillImpl createWaybill, RouteSheetMapper routeSheetMapper) {
+        this.routeSheetService = routeSheetService;
+        this.createWaybillImpl = createWaybill;
+        this.routeSheetMapper = routeSheetMapper;
+    }
+
+    /**
+     * Entrance to the main menu.
+     * @param model Representation.
+     * @return Return to main menu.
+     */
+    @GetMapping
     public String menuEntry(Model model) {
         model.addAttribute("errorMessage", "");
         return "menu";
     }
 
-    @PostMapping("/primary_input") //Первичное заполнение первого путевого листа
-    public String primaryInput(
-            @RequestParam String dateToString,
-            @RequestParam Long number,
-            @RequestParam Double fuelStart,
-            @RequestParam Double fuelFinish,
-            @RequestParam Long mileageStart,
-            @RequestParam Long mileageFinish,
-            @RequestParam Long fueling,
-            @RequestParam Double consumptionNorm,
-            @RequestParam Double consumptionFact,
-            Model model
-    ) {
-        return routeSheetService.addingFirstRouteSheetToDatabase(dateToString, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, model);
+    /**
+     * Initial filling of the first waybill.
+     * @param routeSheetDto routeSheetDto.
+     * @param model Representation.
+     * @return Return to main menu.
+     */
+    @PostMapping("/primary_input")
+    public String primaryInput(@ModelAttribute RouteSheetDto routeSheetDto, Model model) {
+        Map<String, String> answerToMenu = routeSheetService.addingFirstRouteSheetToDatabase(routeSheetDto);
+        model.addAttribute("errorMessage", answerToMenu.get("errorMessage"));
+        return "menu";
     }
 
-    @GetMapping("/routeSheet") // Вывод приветственной информации
+    /**
+     * Conclusion of welcome information.
+     * @return Message.
+     */
+    @GetMapping("/routeSheet")
     public String intro() {
         return "routeSheet";
     }
 
-    @GetMapping("/information")  // Вывод информации
+    /**
+     * @param model Representation.
+     * @return Return to main menu or Information output.
+     */
+    @GetMapping("/information")
     public String generalInformation(Model model) {
-        return routeSheetService.generalInformation(model);
+        List<RouteSheet> routeSheetList = routeSheetService.generalInformation();
+        if (routeSheetList == null) {
+            model.addAttribute("errorMessage", "База данных пуста");
+            return "menu";
+        }
+        model.addAttribute("routeSheetList", routeSheetList);
+        return "information";
     }
 
+    /**
+     * Data request (date, refueling) for adding a waybill.
+     * @param model Representation.
+     * @return Transition.
+     */
     @GetMapping("/filling")
-    public String fillingOutTheWaybill() {
-        if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
+    public String fillingOutTheWaybill(Model model) {
+        if (routeSheetService.queryDatabaseIsEmpty()) {
+            model.addAttribute("hello", "user");
             return "first";
         }
-        return "fueling"; // Запрос данных (дата, запрвка) для добавления ПЛ
-    }
-    
-    @GetMapping("/createNewRouteSheet") // Ввод нового путевого листа
-    public String goToAddRoute(@RequestParam Long fuel, @RequestParam String data, @RequestParam(defaultValue = "no") String isEdit, Model model) {
-        return routeSheetService.addRouteSheetToDatabase(fuel, data, isEdit, model);
+        return "fueling";
     }
 
-    @GetMapping("/editRoute") // Получаем дату (из date.ftlh) и идём заполнять маршруты
-    public String edit(@RequestParam String date, @RequestParam(defaultValue = "no") String isEdit, Model model) {
-        return routeSheetService.addingRoutesToRoutSheet(date, isEdit, model);
+    /**
+     * Enter a new waybill.
+     * @param routeSheetDto routeSheetDto.
+     * @param isEdit Is editable.
+     * @param model Representation.
+     * @return Return to main menu.
+     */
+    @GetMapping("/createNewRouteSheet")
+    public String goToAddRoute(@ModelAttribute RouteSheetDto routeSheetDto, @RequestParam(defaultValue = "no") String isEdit, Model model) {
+        Map<String, String> answerToMenu = routeSheetService.addRouteSheetToDatabase(routeSheetDto, isEdit);
+        model.addAttribute("errorMessage", answerToMenu.get("errorMessage"));
+        return "menu";
     }
 
-    @GetMapping("/editingRoutes") // Приходим из addingRoutes.ftlh в цикле заполняем все маршруты
+    /**
+     * Having received the date and having completed the checks, we proceed to filling out the routes.
+     * @param date Date.
+     * @param model Representation.
+     * @return Go to filling out the directions of the waybill or to the main menu.
+     */
+    @GetMapping("/editRoute")
+    public String edit(@RequestParam String date, Model model) {
+     //   boolean isDatabaseIsEmpty = routeSheetService.queryDatabaseIsEmpty();
+        if (routeSheetService.queryDatabaseIsEmpty()) {
+            model.addAttribute("errorMessage", " БД пуста");
+            return "menu";
+        }
+        boolean thereAreRoutes = routeSheetService.thereAreRoutes(date);
+        if (thereAreRoutes) {
+            model.addAttribute("errorMessage", "На " + date + " заполнены маршруты");
+            return "menu";
+        }
+        model.addAttribute("firstPoint", "Маршала Говорова");
+        return "addingRoutes";
+    }
+
+    /**
+     * We fill in all directions of the waybill.
+     * @param distance Distance between waypoints on a waybill.
+     * @param routeEndPointAddress route endpoint address.
+     * @param isThereFollowingRoute Flag for the next route in the waybill
+     * @param model Representation.
+     * @return We return to the main menu if there are no more routes, otherwise we go to enter a new waybill route.
+     */
+    @GetMapping("/editingRoutes")
     public String edit2(
-            @RequestParam Long distance,
-            @RequestParam String address2,
-            @RequestParam String flag,
+            @RequestParam Short distance,
+            @RequestParam String routeEndPointAddress,
+            @RequestParam String isThereFollowingRoute,
             Model model
     ) {
-        return routeSheetService.editingRoutesToRoutSheet(distance, address2, flag, model);
+        if (isThereFollowingRoute.equals("yes")) {
+            String firstPoint = routeSheetService.editingRoutesToRoutSheet(distance, routeEndPointAddress);
+            model.addAttribute("firstPoint", firstPoint);
+            return "addingRoutes";
+        }
+        routeSheetService.editingRoutesToRoutSheetEnd(distance, routeEndPointAddress);
+        model.addAttribute("errorMessage", "Маршруты добавллены");
+        return "menu";
     }
 
-    @GetMapping("/addingRoutes") // Запрос даты для добавления маршрутов (далее /edit)
+    /**
+     * Request a waybill date for adding routes.
+     * @return Go to date entry.
+     */
+    @GetMapping("/addingRoutes")
     public String date() {
         return "date";
     }
 
+    /**
+     *  Request a waybill date for viewing.
+     * @return Transition.
+     */
     @GetMapping("/viewRouteSheetByDate") // Запрос даты для просмотра ПЛ
-    public String date2() {
+    public String dateForViewRouteSheetByDate() {
         return "dateForViewRouteSheetByDate";
     }
 
-    @GetMapping("/formExcel") // Запрос даты для формирования ПЛ в Excel
+    /**
+     * Requesting the date of the waybill for generating it in Excel.
+     * @return Transition.
+     */
+    @GetMapping("/formExcel")
     public String date3() {
         return "dataForCreateWaybillAdd";
     }
 
-    @GetMapping("/output")  //Вывод маршрутного листа по дате
+    /**
+     * Display route sheet by date.
+     * @param date Date.
+     * @param model Representation.
+     * @return Transition.
+     */
+    @GetMapping("/output")
     public String output(@RequestParam String date, Model model) {
         return routeSheetService.output(date, model);
     }
 
+    /**
+     * Creating a route sheet in Excel.
+     * @param data Date.
+     * @param model Representation.
+     * @return Route sheet in Excel.
+     * @throws IOException
+     */
     @GetMapping("/createWaybill")
     public String createWaybill(@RequestParam String data, Model model) throws IOException {
         return createWaybillImpl.createWaybill(data, model);
     }
 
+    /**
+     * Navigation to enter the parameters of a new waybill.
+     * @return Transition.
+     */
     @GetMapping("/waybillEditing")
     public String waybillEditing() {
         return "fuelingForEdit";
+    }
+
+    /**
+     * Request to delete a database.
+     * @return Transition.
+     */
+    @GetMapping("/deleteDataBase")
+    public String deleteDataBase() {
+        return "deleteDataBase";
+    }
+
+    /**
+     * Request to delete a database.
+     * @param isDelete Approval to delete the database.
+     * @param model Representation.
+     * @return Return to main menu.
+     */
+    @GetMapping("/delete")
+    public String delete(@RequestParam String isDelete, Model model) {
+        if (isDelete.equals("yes")) {
+            routeSheetService.delete();
+            model.addAttribute("errorMessage", "Очистили БД");
+            return "menu";
+        }
+
+        model.addAttribute("errorMessage", "Не стали очищать БД");
+        return "menu";
+    }
+
+    // Доделать
+    /**
+     *
+     * @param string
+     * @return
+     */
+    @GetMapping("/download")
+    public ResponseEntity<String> download(@RequestBody String string) {
+        String responceObject = "Hello";
+        return new ResponseEntity<String>(responceObject, HttpStatus.OK);
+    }
+
+    @GetMapping("/recalculationOfWaybills")
+    public String recalculationOfWaybills(Model model) {
+        System.out.println("Пересчёт всех ПЛ ");
+        routeSheetService.databaseRecalculation();
+        model.addAttribute("errorMessage", "БД перерасчитана");
+        return "menu";
     }
 }
 

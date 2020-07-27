@@ -1,19 +1,8 @@
 package com.sepfort.sheet.service;
 
-import com.sepfort.sheet.repo.UserRepo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
+import com.sepfort.sheet.domain.User;
+import com.sepfort.sheet.exception.UserException;
 
-@Service
-public class UserService implements UserDetailsService {
-    @Autowired
-    private UserRepo userRepo;
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepo.findByUsername(username);
-    }
+public interface UserService {
+    void addUser(User user) throws UserException;
 }

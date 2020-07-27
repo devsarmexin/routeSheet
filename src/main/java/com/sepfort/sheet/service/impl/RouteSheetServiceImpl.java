@@ -1,99 +1,186 @@
 package com.sepfort.sheet.service.impl;
 
-import com.sepfort.sheet.domain.Addresses;
+import com.sepfort.sheet.domain.Route;
 import com.sepfort.sheet.domain.RouteSheet;
+import com.sepfort.sheet.dto.RouteSheetDto;
+import com.sepfort.sheet.repo.RouteRepo;
 import com.sepfort.sheet.repo.RouteSheetRepo;
 import com.sepfort.sheet.service.RouteSheetService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class RouteSheetServiceImpl implements RouteSheetService {
+
+    /**
+     * Flag of the starting point of the first route of the waybill.
+     */
     private boolean pointFlag = true;
+
+    /**
+     * Starting point of the route of the waybill.
+     */
     private String newPoint;
-    private Long sumDistance = 0L;
-    private List<Addresses> addressesList = new ArrayList<>();
-    private LocalDate localDateFromAddRoutes; // дата первого ПЛ
+
+    /**
+     * The sum of the distance traveled.
+     */
+    private Integer sumDistance = 0;
+
+    /**
+     * List of directions of the waybill.
+     */
+    private List<Route> routeList = new ArrayList<>();
+
+    /**
+     * Date of first waybill.
+     */
+    private LocalDate localDateFromAddRoutes;
+
+    /**
+     * Date for entering routes on the waybill.
+     */
+    private LocalDate dateForAddRoutes;
+
+    /**
+     * Modified waybill.
+     */
+    private Integer numberModifiedWAyBill;
+
+    private int step;
+
+    private RouteSheetRepo routeSheetRepo;
+    private RouteRepo routeRepo;
 
     @Autowired
-    private RouteSheetRepo routeSheetRepo;
-
-    @Override  // Добавление в БД первого ПЛ
-    public String addingFirstRouteSheetToDatabase(String dateToString, Long number, Double fuelStart, Double fuelFinish, Long mileageStart, Long mileageFinish, Long fueling, Double consumptionNorm, Double consumptionFact, Model model) {
-        localDateFromAddRoutes = LocalDate.parse(dateToString);
-        var saving = consumptionFact - consumptionNorm;
-        routeSheetRepo.save(new RouteSheet(localDateFromAddRoutes, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, saving));
-        var lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        model.addAttribute("lastRouteSheet", lastRouteSheet);
-        model.addAttribute("errorMessage", "Первый маршрутный лист заполен и помещён в базу данных.");
-        return "menu";
+    public RouteSheetServiceImpl(final RouteSheetRepo routeSheetRepo, final RouteRepo routeRepo) {
+        this.routeSheetRepo = routeSheetRepo;
+        this.routeRepo = routeRepo;
     }
 
-    @Override  // Добавление в БД нового ПЛ
-    public String addRouteSheetToDatabase(Long fuel, String data, String isEdit, Model model) {
-        if (routeSheetRepo.findByData(LocalDate.parse(data)) != null && isEdit.equals("no")) {
-            model.addAttribute("errorMessage", "На " + data + " есть путевой лист");
-            return "menu";
+    /**
+     * Adding the first waybill to the database.
+     *
+     * @param routeSheetDto routeSheetDto.
+     * @return Operation Result Information.
+     */
+    @Override
+    public Map<String, String> addingFirstRouteSheetToDatabase(final RouteSheetDto routeSheetDto) {
+        localDateFromAddRoutes = LocalDate.parse(routeSheetDto.getTripDate());
+        Double saving = routeSheetDto.getConsumptionFact() - routeSheetDto.getConsumptionNorm();
+        routeSheetRepo.save(new RouteSheet(localDateFromAddRoutes, routeSheetDto.getWaybillNumber(), routeSheetDto.getFuelStart(), routeSheetDto.getFuelFinish(), routeSheetDto.getMileageStart(), routeSheetDto.getMileageFinish(), routeSheetDto.getFueling(), routeSheetDto.getConsumptionNorm(), routeSheetDto.getConsumptionFact(), saving));
+        Map<String, String> answerToMenu = new HashMap<>();
+        answerToMenu.put("errorMessage", "Первый маршрутный лист заполен и помещён в базу данных.");
+        return answerToMenu;
+    }
+
+    /**
+     * Adding a new waybill to the database.
+     *
+     * @param routeSheetDto routeSheetDto.
+     * @param isEdit        Is the waybill editable.
+     * @return Operation Result Information.
+     */
+    @Override
+    public Map<String, String> addRouteSheetToDatabase(final RouteSheetDto routeSheetDto, final String isEdit) {
+        Map<String, String> answerToMenu = new HashMap<>();
+        System.out.println("Дата изменяемого ПЛ " + routeSheetDto.getTripDate());
+        RouteSheet lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
+        if (lastRouteSheet.getMileageFinish() == null) {
+            answerToMenu.put("errorMessage", "Предыдущий маршрутный лист без пробега (нет маршрутов)");
+            return answerToMenu;
         }
-        Long number;
         if (isEdit.equals("yes")) {
-            number = routeSheetRepo.findByData(routeSheetRepo.findDataMax()).getNumber();
-            var id = routeSheetRepo.findByData(LocalDate.parse(data)).getId();
+            //TODO: Вставить проверку на то, что номер ПЛ больше 1. Иначе надо заносить данные через ввод первого ПЛ.
+            LocalDate date = LocalDate.parse(routeSheetDto.getTripDate());
+            Integer id = routeSheetRepo.findByTripDate(date).getId();
+            RouteSheet routesheet = changeWaybill(routeSheetDto);
+            routeSheetRepo.save(routesheet);
             routeSheetRepo.deleteById(id);
-        } else {
-            number = routeSheetRepo.findByData(routeSheetRepo.findDataMax()).getNumber() + 1L;
+            answerToMenu.put("errorMessage", "Изменённый маршрутный лист на " + routeSheetDto.getTripDate() + " создан. ТЕПЕРЬ ОБЯЗАТЕЛЬНО ВВЕДИТЕ МАРШРУТЫ НА ЭТУ ДАТУ!!!");
+            return answerToMenu;
         }
-        var lastRouteSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        var routeSheet = addNewRouteSheet(LocalDate.parse(data), number, lastRouteSheet, fuel, 0L, null);
+        RouteSheet routeSheet = calculationNewWaybill(routeSheetDto, lastRouteSheet);
         routeSheetRepo.save(routeSheet);
-        model.addAttribute("errorMessage", "Новый маршрутный лист на " + data + " создан.");
-        return "menu";
+        answerToMenu.put("errorMessage", "Новый маршрутный лист на " + routeSheetDto.getTripDate() + " создан.");
+        return answerToMenu;
     }
 
-    @Override // Добавление и редактирование маршрутов
-    public String addingRoutesToRoutSheet(String date, String isEdit, Model model) {
-        if (routeSheetRepo.findByData(LocalDate.parse(date)) == null) {
-            model.addAttribute("errorMessage", "На " + date + " нет маршрутного листа!");
-            return "menu";
-        }
-        if (!routeSheetRepo.findByData(LocalDate.parse(date)).getAddress().isEmpty() && isEdit.equals("no")) {
-            model.addAttribute("errorMessage", "Нельзя добавить маршруты, они уже заполнены.");
-            return "menu";
-        }
-        if (isEdit.equals("yes")) {
-            routeSheetRepo.findByData(LocalDate.parse(date)).setAddress(new ArrayList<>());
-        }
-        localDateFromAddRoutes = LocalDate.parse(date);
-        model.addAttribute("firstPoint", "Маршала Говорова");
-        return "addingRoutes";
+    /**
+     * Change waybill.
+     * @param routeSheetDto routeSheetDto.
+     * @return
+     */
+    private RouteSheet changeWaybill(final RouteSheetDto routeSheetDto) {
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(LocalDate.parse(routeSheetDto.getTripDate()));
+        Integer waybillNumber = routeSheet.getWaybillNumber();
+        RouteSheet previousRouteSheet = routeSheetRepo.findByWaybillNumber(waybillNumber);
+        RouteSheet modifiedRouteSheet = calculationChangeNewWaybill(routeSheetDto, previousRouteSheet);
+        return modifiedRouteSheet;
     }
 
-    @Override  // Вывод информации
-    public String generalInformation(Model model) {
+    /**
+     * Пересчёт изменяемого ПЛ
+     * @param routeSheetDto
+     * @param previousRouteSheet
+     * @return
+     */
+
+    private RouteSheet calculationChangeNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet previousRouteSheet) {
+    //TODO: сделать проверку на то, что возможен изменен первый ПЛ и предыдущего не будет путевого листа.
+        Integer waybillNumber = previousRouteSheet.getWaybillNumber();
+        LocalDate date = LocalDate.parse(routeSheetDto.getTripDate());
+        Double fuelStart = previousRouteSheet.getFuelStart();
+        Integer mileageStart = previousRouteSheet.getMileageStart();
+        Short fueling = routeSheetDto.getFueling();
+        return new RouteSheet(date, waybillNumber, fuelStart, mileageStart, fueling);
+    }
+
+    /**
+     * Check for the existence of a waybill for the desired date.
+     *
+     * @param date Searched date.
+     * @return Try or false.
+     */
+    @Override
+    public boolean thereAreRoutes(final String date) {
+        dateForAddRoutes = LocalDate.parse(date);
+        return routeSheetRepo.findByTripDate(LocalDate.parse(date)).getRoutes() == null;
+    }
+
+    /**
+     * Display information on all existing waybills.
+     * @return List of waybills.
+     */
+    @Override
+    public List<RouteSheet> generalInformation() {
         if (IterableUtils.size(routeSheetRepo.findAll()) == 0) {
-            model.addAttribute("errorMessage", "База данных пуста");
-            return "menu";
+            return null;
         }
-        var routeSheet = routeSheetRepo.findById(routeSheetRepo.findMaxId()).get();
-        var lastNumber = routeSheet.getData();
-        model.addAttribute("lastNumber", lastNumber);
-
-        List<RouteSheet> routeSheetList = routeSheetRepo.findAllByDataIsNotNull();
-        model.addAttribute("routeSheetList", routeSheetList);
-        return "information";
+        List<RouteSheet> routeSheetList = new ArrayList<>();
+        CollectionUtils.addAll(routeSheetList, routeSheetRepo.findAll().iterator());
+        return routeSheetList;
     }
 
-    @Override // Вывод маршрутного листа на экран по дате
-    public String output(String date, Model model) {
-        var data = LocalDate.parse(date);
-        var routeSheet = routeSheetRepo.findByData(data);
+    /**
+     * Display route sheet by date.
+     * @param date Searched date.
+     * @param model Representation.
+     * @return Returns to the main menu if there is no waybill for the desired date or displays the contents of the waybill.
+     */
+    @Override
+    public String output(final String date, final Model model) {
+        LocalDate data = LocalDate.parse(date);
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(data);
         if (routeSheet == null) {
             model.addAttribute("errorMessage", "На " + date + " маршрутного листа нет");
             return "menu";
@@ -103,8 +190,23 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         return "output";
     }
 
-    @Override  // Добавление маршрутов
-    public String editingRoutesToRoutSheet(Long distance, String address2, String flag, Model model) {
+    /**
+     * Determines whether the base is empty or not.
+     * @return Try or false.
+     */
+    @Override
+    public boolean queryDatabaseIsEmpty() {
+        return IterableUtils.size(routeSheetRepo.findAll()) == 0;
+    }
+
+    /**
+     * We fill in all directions of the waybill.
+     * @param distance Distance between waypoints on a waybill.
+     * @param routeEndPointAddress route endpoint address.
+     * @return We return to the main menu if there are no more routes, otherwise we go to enter a new waybill route.
+     */
+    @Override
+    public String editingRoutesToRoutSheet(final Short distance, final String routeEndPointAddress) {
         String firstPoint;
         if (pointFlag) {
             firstPoint = "Маршала Говорова";
@@ -112,56 +214,113 @@ public class RouteSheetServiceImpl implements RouteSheetService {
         } else {
             firstPoint = newPoint;
         }
-        newPoint = address2;
-        var addresses = new Addresses(firstPoint, address2, distance);
+        newPoint = routeEndPointAddress;
+        Route route = new Route(firstPoint, routeEndPointAddress, distance);
         sumDistance += distance;
-        addressesList.add(addresses);
-        model.addAttribute("firstPoint", newPoint);
-        if (flag.equals("no")) {
-            localDateFromAddRoutes = routeSheetRepo.findDataMax();
-            var routeSheet = routeSheetRepo.findByData(localDateFromAddRoutes);
-            var routeSheetForSave = addNewRouteSheet(routeSheet.getData(), routeSheet.getNumber(), routeSheet, routeSheet.getFueling(), sumDistance, addressesList);
-            routeSheetRepo.deleteById(routeSheet.getId());
-            routeSheetRepo.save(routeSheetForSave);
-
-            addressesList = new ArrayList<>();
-            localDateFromAddRoutes = null;
-            sumDistance = 0L;
-            pointFlag = true;
-            addressesList = new ArrayList<>();
-            model.addAttribute("errorMessage", "Закончили ввод маршрутов");
-            return "menu";
-        }
-        return "addingRoutes";
+        routeList.add(route);
+        return newPoint;
     }
 
-    // ПОДСЧЕТ значений полей на новый путевой лист
-    public RouteSheet addNewRouteSheet(LocalDate date, Long number, RouteSheet lastRouteSheet, Long fueling, Long distance, List<Addresses> addressesList) {
-
-        Double consumptionNorm = Precision.round(12D * distance / 100D, 2);
-        // Переделать, что бы проьежуток выбирать от даты до даты
-        var winterStartDay = LocalDate.parse("2019-11-01");
-        var winterEndDay = LocalDate.parse("2020-06-30");
-        if (date.isAfter(winterStartDay) && date.isBefore(winterEndDay)) {
-            consumptionNorm = Precision.round(consumptionNorm * 1.1, 2);
-        }
-        Double consumptionFact = 0D;
-        if (consumptionNorm < 10) {
-            consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 3));
-        }
-        if (consumptionNorm >= 10 && consumptionNorm < 100) {
-            consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 4));
-        }
-        if (consumptionNorm >= 100) {
-            consumptionFact = Double.parseDouble(String.valueOf(consumptionNorm).substring(0, 5));
+    /**
+     * Enter the last waybill route.
+     * @param distance Distance between waypoints on a waybill.
+     * @param routeEndPointAddress route endpoint address.
+     */
+    @Override
+    public void editingRoutesToRoutSheetEnd(final Short distance, final String routeEndPointAddress) {
+        RouteSheet routeSheet = routeSheetRepo.findByTripDate(dateForAddRoutes);
+        if (routeList.isEmpty()) {
+            Route route = new Route("Маршала Говорова", routeEndPointAddress, distance);
+            sumDistance += distance;
+            routeList.add(route);
+        } else {
+            Route route = new Route(newPoint, routeEndPointAddress, distance);
+            sumDistance += distance;
+            routeList.add(route);
         }
 
-        var fuelStart = lastRouteSheet.getFuelFinish();
-        var fuelFinish = Precision.round(fuelStart + fueling - consumptionFact, 2);
-        var mileageStart = lastRouteSheet.getMileageFinish();
-        var mileageFinish = mileageStart + distance;
-        var saving = Precision.round(consumptionNorm - consumptionFact, 3);
+        RouteSheet routeSheetForSave = calculationNewWaybillWithRoutes(routeSheet);
+        routeSheetRepo.save(routeSheetForSave);
 
-        return new RouteSheet(date, number, fuelStart, fuelFinish, mileageStart, mileageFinish, fueling, consumptionNorm, consumptionFact, saving, distance, addressesList);
+        routeList = new ArrayList<>();
+        sumDistance = 0;
+        pointFlag = true;
+        routeList = new ArrayList<>();
+    }
+
+    /**
+     * Deleting a database.
+     */
+    @Override
+    public void delete() {
+        routeSheetRepo.deleteAll();
+        routeRepo.deleteAll();
+    }
+
+    /**
+     * Database recalculation.
+     */
+    @Override
+    public void databaseRecalculation() {
+        step = 1;
+        Integer maximumNumberOfWaybills = routeSheetRepo.findMaxNumberOfWaybills();
+        while (routeSheetRepo.findByWaybillNumber(step) != null) {
+            if (step == maximumNumberOfWaybills) {
+                return;
+            }
+            RouteSheet previousWaybill = routeSheetRepo.findByWaybillNumber(step);
+            RouteSheet waybill = routeSheetRepo.findByWaybillNumber(step + 1);
+
+            Double fuelStart = previousWaybill.getFuelFinish();
+            Integer mileageStart = previousWaybill.getMileageFinish();
+            Integer mileageFinish = mileageStart + waybill.getDistance();
+            Double fuelFinish = previousWaybill.getFuelFinish() + waybill.getFueling() - waybill.getConsumptionFact();
+
+            waybill.setFuelStart(fuelStart);
+            waybill.setMileageStart(mileageStart);
+            waybill.setMileageFinish(mileageFinish);
+            waybill.setFuelFinish(fuelFinish);
+
+            routeSheetRepo.deleteById(waybill.getId());
+            routeSheetRepo.save(waybill);
+            RouteSheet x = routeSheetRepo.findByWaybillNumber(2);
+
+            step++;
+        }
+    }
+
+    /**
+     * calculation New Waybill With Routes.
+     * @param routeSheet routeSheet.
+     * @return routeSheet.
+     */
+    private RouteSheet calculationNewWaybillWithRoutes(final RouteSheet routeSheet) {
+        RouteSheet lastRouteSheet = routeSheetRepo.findRouteSheetByWaybillNumber(routeSheet.getWaybillNumber() - 1);
+
+        routeSheet.setMileageFinish(routeSheet.getMileageStart() + sumDistance);
+        Double consumptionNorm = sumDistance * 12D / 100D;
+        routeSheet.setConsumptionNorm(consumptionNorm);
+        Double consumptionFact = (Double) Math.floor(consumptionNorm * 10) / 10.0;
+        routeSheet.setConsumptionFact(consumptionFact);
+        routeSheet.setSaving(consumptionNorm - consumptionFact);
+        routeSheet.setFuelFinish(routeSheet.getFuelStart() + routeSheet.getFueling() - consumptionFact);
+        routeSheet.setRoutes(routeList);
+        routeSheet.setDistance(sumDistance);
+        return routeSheet;
+    }
+
+    /**
+     * Calculation new waybill.
+     * @param routeSheetDto routeSheetDto.
+     * @param previousRouteSheet Previous RouteSheet.
+     * @return Modified waybill.
+     */
+    private RouteSheet calculationNewWaybill(final RouteSheetDto routeSheetDto, final RouteSheet previousRouteSheet) {
+        Integer waybillNumber = previousRouteSheet.getWaybillNumber() + 1;
+        Double fuelStart = previousRouteSheet.getFuelFinish();
+        Integer mileageStart = previousRouteSheet.getMileageFinish();
+        Short fueling = routeSheetDto.getFueling();
+        Integer mileageFinish = routeSheetDto.getMileageFinish();
+        return new RouteSheet(LocalDate.parse(routeSheetDto.getTripDate()), waybillNumber, fuelStart, mileageStart, mileageFinish, fueling);
     }
 }
